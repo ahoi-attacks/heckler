@@ -1,0 +1,33 @@
+distros/ubuntu-18.04/src
+distros/fedora-28/src
+source-commit.*
+snp-release*
+heckler-snp*
+local-installation/
+linux/backup
+linux/compile_commands*
+linux/linux-*
+usr/
+mantic-server-cloudimg*
+launch-qemu-old.sh
+modules/
+
+# XXX: We dont use submodules here, clone with scripts instead
+qemu/
+ovmf/
+linux/
+userspace/
+edk2
+
+monitor
+*.o
+
+# Image
+Image.fd
+Image.qcow2stdout.log
+Image.qcow2
+stdout.log
+VM_DISK.fd
+VM_DISK.qcow2
+venv
+linux
