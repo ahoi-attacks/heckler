@@ -34,3 +34,9 @@ linux
 .idea
 .code
 run_bene.sh
+
+
+VM_DISK_ssh.fd
+VM_DISK_sudo.qcow2
+VM_DISK_sudo.fd
+VM_DISK_ssh.qcow2

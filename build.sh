@@ -92,7 +92,7 @@ if [[ "$BUILD_PACKAGE" = "1" ]]; then
 		cp linux/kernel-*.rpm $OUTPUT_DIR/linux -v
 	fi
 
-	cp launch-qemu.sh ${OUTPUT_DIR} -v
+	cp launch-qemu-shell.sh ${OUTPUT_DIR} -v
 	cp install.sh ${OUTPUT_DIR} -v
 	cp kvm.conf ${OUTPUT_DIR} -v
 	tar zcvf ${OUTPUT_DIR}.tar.gz ${OUTPUT_DIR}
