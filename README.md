@@ -1,4 +1,9 @@
 # Heckler
+>
+> Breaking Confidential VMs with Malicious Interrupts  
+> (USENIX Security 2024)  
+> https://ahoi-attacks.github.io/heckler/
+>
 
 ## Getting Started
 
