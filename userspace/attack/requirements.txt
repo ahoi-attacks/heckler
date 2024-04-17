@@ -10,3 +10,4 @@ pytest==8.1.1
 rich==13.7.1
 tomli==2.0.1
 zxpy==1.6.3
+numpy
