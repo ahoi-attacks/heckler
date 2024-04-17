@@ -20,10 +20,19 @@ $ ./build.sh --package
 ```
 
 This builds host and guest kernel, qemu and ovmf for your host machine.
-Upon completion, install the host kernel on your machine.
+On succesful build, the binaries will be available in `heckler-snp-release-<DATE>`.
+
+```
+cd heckler-snp-release-<DATE>
+sudo ./install.sh
+````
+
+### Prepare Host
+Follow up on [Prepare Host](./README-amdsev.md) to set up your host for SEV-SNP.
+
 
 ### VM Image
-Create an ubuntu 22.04 image in qcow2 format. See ./run.sh script.  
+Create an ubuntu 22.04 image in qcow2 format. See [./run.sh](./run_vm_sudo.sh) script.  
 
 ### Companion Repositories:
 - [heckler-kernel](https://github.com/ahoi-attacks/heckler-kernel) (`./linux/{guest|host}`): Kernel code for gadget profiling

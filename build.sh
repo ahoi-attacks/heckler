@@ -1,12 +1,18 @@
 #!/bin/bash
 
+set -o errexit 
+set -o nounset 
+set -o pipefail 
 
-SCRIPT_DIR="$(dirname $0)"
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 . ${SCRIPT_DIR}/common.sh
 . ${SCRIPT_DIR}/stable-commits
 [ -e /etc/os-release ] && . /etc/os-release
 
-set +x
+set -x
+
+BUILD_PACKAGE="0"
 
 function usage()
 {
@@ -23,6 +29,8 @@ function usage()
 }
 
 INSTALL_DIR="`pwd`/usr/local"
+
+
 
 while [ -n "${1:-}" ]; do
 	case "$1" in
@@ -48,6 +56,8 @@ while [ -n "${1:-}" ]; do
 	esac
 done
 
+
+
 mkdir -p $INSTALL_DIR
 IDIR=$INSTALL_DIR
 INSTALL_DIR=$(readlink -e $INSTALL_DIR)
@@ -56,10 +66,12 @@ INSTALL_DIR=$(readlink -e $INSTALL_DIR)
 	exit 1
 }
 
+
+
 if [ -z "${1:-}" ]; then
 	build_install_qemu "$INSTALL_DIR"
 	build_install_ovmf_edk2 "$INSTALL_DIR/share/qemu"
-	build_kernel "${2:-}"
+	build_kernel ${2:-} 
 else
 	case "${1:-}" in
 	qemu)
@@ -71,6 +83,11 @@ else
 	kernel)
 		# additional argument of "host" or "guest" can be added to limit build to that type
 		build_kernel "${2:-}"
+		;;
+	*)
+		echo "unknown parameter $1"
+		exit 1
+		break
 		;;
 	esac
 fi

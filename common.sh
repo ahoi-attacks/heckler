@@ -1,4 +1,5 @@
 #!/bin/bash
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 run_cmd()
 {
@@ -41,26 +42,6 @@ build_kernel()
 			fi
 		fi
 
-		# if [ "${V}" = "guest" ]; then
-		# 	BRANCH="${KERNEL_GUEST_BRANCH}"
-		# else
-		# 	BRANCH="${KERNEL_HOST_BRANCH}"
-		# fi
-
-		# # If ${KERNEL_GIT_URL} is ever changed, 'current' remote will be out
-		# # of date, so always update the remote URL first. Also handle case
-		# # where AMDSEV scripts are updated while old kernel repos are still in
-		# # the directory without a 'current' remote
-		# pushd ${V} >/dev/null
-		# if git remote get-url current 2>/dev/null; then
-		# 	run_cmd git remote set-url current ${KERNEL_GIT_URL}
-		# else
-		# 	run_cmd git remote add current ${KERNEL_GIT_URL}
-		# fi
-		# popd >/dev/null
-
-		# Nuke any previously built packages so they don't end up in new tarballs
-		# when ./build.sh --package is specified
 		rm -f linux-*-snp-${V}*
 
 		VER="-snp-${V}"
@@ -70,13 +51,11 @@ build_kernel()
 		run_cmd $MAKE distclean
 
 		pushd ${V} >/dev/null
-		# BEAN: do not checkout
-		# run_cmd git fetch current
-		# run_cmd git checkout current/${BRANCH}
-		# run_cmd git checkout ${BRANCH}
+	
 			COMMIT=$(git log --format="%h" -1 HEAD)
 
 			run_cmd "cp /boot/config-$(uname -r) .config"
+
 			run_cmd ./scripts/config --set-str LOCALVERSION "$VER-$COMMIT"
 			run_cmd ./scripts/config --disable LOCALVERSION_AUTO
 			run_cmd ./scripts/config --enable  EXPERT
@@ -84,7 +63,9 @@ build_kernel()
 			run_cmd ./scripts/config --enable  DEBUG_INFO_REDUCED
 			run_cmd ./scripts/config --enable  AMD_MEM_ENCRYPT
 			run_cmd ./scripts/config --disable AMD_MEM_ENCRYPT_ACTIVE_BY_DEFAULT
-			run_cmd ./scripts/config --enable  KVM_AMD_SEV
+			run_cmd ./scripts/config --module KVM
+			run_cmd ./scripts/config --module KVM_AMD
+			run_cmd ./scripts/config --enable KVM_AMD_SEV
 			run_cmd ./scripts/config --module  CRYPTO_DEV_CCP_DD
 			run_cmd ./scripts/config --disable SYSTEM_TRUSTED_KEYS
 			run_cmd ./scripts/config --disable SYSTEM_REVOCATION_KEYS
@@ -99,32 +80,28 @@ build_kernel()
 			run_cmd ./scripts/config --module  X86_CPUID
 			run_cmd ./scripts/config --disable UBSAN
 			run_cmd ./scripts/config --disable MODULE_COMPRESS_ZSTD
+			
+			
 
-			# guest support
-			run_cmd ./scripts/config --enable  VIRTIO_BLK
-			run_cmd ./scripts/config --enable  VFAT_FS
-			run_cmd ./scripts/config --set-str FAT_DEFAULT_IOCHARSET iso8859-1
-			run_cmd ./scripts/config --enable NLS_ISO8859_1
-			run_cmd ./scripts/config --enable 9P_FS
-			run_cmd ./scripts/config --enable NET_9P
-			run_cmd ./scripts/config --enable NET_9P_VIRTIO
-			run_cmd ./scripts/config --enable NET_9P_FD
-			run_cmd ./scripts/config --enable VIRTIO_NET
-			run_cmd ./scripts/config --enable 8139TOO
-			run_cmd ./scripts/config --enable IKCONFIG
-			run_cmd ./scripts/config --enable INET_TUNNEL
-			run_cmd ./scripts/config --enable NET_FAILOVER
-			run_cmd ./scripts/config --enable E1000
-			run_cmd ./scripts/config --enable E100
+			if [ "$V" == "guest" ]; then
+				# guest support
+				cp -rf $SCRIPT_DIR/misc/sev-guest-kernel-config .config							
+			fi
 
 
 			run_cmd echo $COMMIT >../../source-commit.kernel.$V
 		popd >/dev/null
 
-		yes "" | $MAKE olddefconfig
+		
+		yes "" | $MAKE olddefconfig || true
+
+		if [ "$V" == "guest" ]; then
+		    # for guest we just need bzImage, the rest we take from distro
+			MAKE="$MAKE bzImage"
+		fi
 
 		# Build 
-		run_cmd $MAKE >/dev/null
+		run_cmd $MAKE 
 		
 
 		if [ "$ID" = "debian" ] || [ "$ID_LIKE" = "debian" ]; then
