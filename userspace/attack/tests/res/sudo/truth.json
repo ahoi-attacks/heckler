@@ -1,0 +1,5 @@
+{
+  "addr_unix_blankpasswd": "0x0000000007e6da0f",
+  "addr_pam_sm_authenticate": "0x000000001d416770",
+  "main": "0x0000000045252249"
+}
