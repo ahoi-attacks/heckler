@@ -16,7 +16,7 @@ modules/
 qemu/
 ovmf/
 linux/
-userspace/
+
 edk2
 
 monitor
