@@ -29,3 +29,7 @@ Create an ubuntu 22.04 image in qcow2 format. See ./run.sh script.
 - **heckler-kernel**: Kernel code for gadget profiling
 - **heckler-qemu**: Compatible qemu version
 - **heckler-ovmf**: Compatible ovmf version⏎
+
+### Artifact Evaluation
+This code is still a work in progress.
+We plan to apply for artifact evaluation when time permits.
