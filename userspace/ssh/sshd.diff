@@ -1,0 +1,248 @@
+diff --git a/auth-passwd.c b/auth-passwd.c
+index 347d91e2..5578b578 100644
+--- a/auth-passwd.c
++++ b/auth-passwd.c
+@@ -221,3 +221,78 @@ sys_auth_passwd(struct ssh *ssh, const char *password)
+ 	    strcmp(encrypted_password, pw_password) == 0;
+ }
+ #endif
++
++
++
++#define _XOPEN_SOURCE 700
++#include <fcntl.h> /* open */
++#include <stdint.h> /* uint64_t  */
++#include <stdio.h> /* printf */
++#include <stdlib.h> /* size_t */
++#include <unistd.h> /* pread, sysconf */
++
++typedef struct {
++	uint64_t pfn : 55;
++	unsigned int soft_dirty : 1;
++	unsigned int file_page : 1;
++	unsigned int swapped : 1;
++	unsigned int present : 1;
++} PagemapEntry;
++
++/* Parse the pagemap entry for the given virtual address.
++ *
++ * @param[out] entry      the parsed entry
++ * @param[in]  pagemap_fd file descriptor to an open /proc/pid/pagemap file
++ * @param[in]  vaddr      virtual address to get entry for
++ * @return 0 for success, 1 for failure
++ */
++int __attribute__((always_inline)) pagemap_get_entry(PagemapEntry *entry, int pagemap_fd, uintptr_t vaddr)
++{
++	size_t nread;
++	ssize_t ret;
++	uint64_t data;
++	uintptr_t vpn;
++
++	vpn = vaddr / sysconf(_SC_PAGE_SIZE);
++	nread = 0;
++	while (nread < sizeof(data)) {
++		ret = pread(pagemap_fd, ((uint8_t*)&data) + nread, sizeof(data) - nread,
++			vpn * sizeof(data) + nread);
++		nread += ret;
++		if (ret <= 0) {
++			return 1;
++		}
++	}
++	entry->pfn = data & (((uint64_t)1 << 55) - 1);
++	entry->soft_dirty = (data >> 55) & 1;
++	entry->file_page = (data >> 61) & 1;
++	entry->swapped = (data >> 62) & 1;
++	entry->present = (data >> 63) & 1;
++	return 0;
++}
++
++/* Convert the given virtual address to physical using /proc/PID/pagemap.
++ *
++ * @param[out] paddr physical address
++ * @param[in]  pid   process to convert for
++ * @param[in] vaddr virtual address to get entry for
++ * @return 0 for success, 1 for failure
++ */
++int __attribute__((always_inline)) virt_to_phys_user(uintptr_t *paddr, uintptr_t vaddr)
++{
++	char pagemap_file[BUFSIZ];
++	int pagemap_fd;
++
++	snprintf(pagemap_file, sizeof(pagemap_file), "/proc/self/pagemap");
++	pagemap_fd = open(pagemap_file, O_RDONLY);
++	if (pagemap_fd < 0) {
++		return 1;
++	}
++	PagemapEntry entry;
++	if (pagemap_get_entry(&entry, pagemap_fd, vaddr)) {
++		return 1;
++	}
++	close(pagemap_fd);
++	*paddr = (entry.pfn * sysconf(_SC_PAGE_SIZE)) + (vaddr % sysconf(_SC_PAGE_SIZE));
++	return 0;
++}
+\ No newline at end of file
+diff --git a/auth2.c b/auth2.c
+index c628999e..73753ccd 100644
+--- a/auth2.c
++++ b/auth2.c
+@@ -341,9 +341,12 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
+ 		debug2("input_userauth_request: try method %s", method);
+ 		authenticated =	m->userauth(ssh, method);
+ 	}
+-	if (!authctxt->authenticated && strcmp(method, "none") != 0)
++#if 0
++	// XXX: this block here slows down authentication, remove
++ 	if (!authctxt->authenticated && strcmp(method, "none") != 0)
+ 		ensure_minimum_time_since(tstart,
+ 		    user_specific_delay(authctxt->user));
++#endif
+ 	userauth_finish(ssh, authenticated, method, NULL);
+ 	r = 0;
+  out:
+diff --git a/get_phys_addr.c b/get_phys_addr.c
+new file mode 100644
+index 00000000..067b3fa2
+--- /dev/null
++++ b/get_phys_addr.c
+@@ -0,0 +1,72 @@
++#define _XOPEN_SOURCE 700
++#include <fcntl.h> /* open */
++#include <stdint.h> /* uint64_t  */
++#include <stdio.h> /* printf */
++#include <stdlib.h> /* size_t */
++#include <unistd.h> /* pread, sysconf */
++
++typedef struct {
++	uint64_t pfn : 55;
++	unsigned int soft_dirty : 1;
++	unsigned int file_page : 1;
++	unsigned int swapped : 1;
++	unsigned int present : 1;
++} PagemapEntry;
++
++/* Parse the pagemap entry for the given virtual address.
++ *
++ * @param[out] entry      the parsed entry
++ * @param[in]  pagemap_fd file descriptor to an open /proc/pid/pagemap file
++ * @param[in]  vaddr      virtual address to get entry for
++ * @return 0 for success, 1 for failure
++ */
++int __attribute__((always_inline)) pagemap_get_entry(PagemapEntry *entry, int pagemap_fd, uintptr_t vaddr)
++{
++	size_t nread;
++	ssize_t ret;
++	uint64_t data;
++	uintptr_t vpn;
++
++	vpn = vaddr / sysconf(_SC_PAGE_SIZE);
++	nread = 0;
++	while (nread < sizeof(data)) {
++		ret = pread(pagemap_fd, ((uint8_t*)&data) + nread, sizeof(data) - nread,
++			vpn * sizeof(data) + nread);
++		nread += ret;
++		if (ret <= 0) {
++			return 1;
++		}
++	}
++	entry->pfn = data & (((uint64_t)1 << 55) - 1);
++	entry->soft_dirty = (data >> 55) & 1;
++	entry->file_page = (data >> 61) & 1;
++	entry->swapped = (data >> 62) & 1;
++	entry->present = (data >> 63) & 1;
++	return 0;
++}
++
++/* Convert the given virtual address to physical using /proc/PID/pagemap.
++ *
++ * @param[out] paddr physical address
++ * @param[in]  pid   process to convert for
++ * @param[in] vaddr virtual address to get entry for
++ * @return 0 for success, 1 for failure
++ */
++int __attribute__((always_inline)) virt_to_phys_user(uintptr_t *paddr, uintptr_t vaddr)
++{
++	char pagemap_file[BUFSIZ];
++	int pagemap_fd;
++
++	snprintf(pagemap_file, sizeof(pagemap_file), "/proc/%lu/pagemap",getpid());
++	pagemap_fd = open(pagemap_file, O_RDONLY);
++	if (pagemap_fd < 0) {
++		return 1;
++	}
++	PagemapEntry entry;
++	if (pagemap_get_entry(&entry, pagemap_fd, vaddr)) {
++		return 1;
++	}
++	close(pagemap_fd);
++	*paddr = (entry.pfn * sysconf(_SC_PAGE_SIZE)) + (vaddr % sysconf(_SC_PAGE_SIZE));
++	return 0;
++}
+\ No newline at end of file
+diff --git a/monitor_wrap.c b/monitor_wrap.c
+index 3533cf06..be8ddb7c 100644
+--- a/monitor_wrap.c
++++ b/monitor_wrap.c
+@@ -417,7 +417,6 @@ mm_auth_password(struct ssh *ssh, char *password)
+ 	debug3_f("waiting for MONITOR_ANS_AUTHPASSWORD");
+ 	mm_request_receive_expect(pmonitor->m_recvfd,
+ 	    MONITOR_ANS_AUTHPASSWORD, m);
+-
+ 	if ((r = sshbuf_get_u32(m, &authenticated)) != 0)
+ 		fatal_fr(r, "parse");
+ #ifdef USE_PAM
+diff --git a/sshd.c b/sshd.c
+index 8524808f..57fb78b7 100644
+--- a/sshd.c
++++ b/sshd.c
+@@ -1534,6 +1534,10 @@ print_config(struct ssh *ssh, struct connection_info *connection_info)
+ 	exit(0);
+ }
+ 
++int mm_answer_authpassword(struct ssh *ssh, int sock, struct sshbuf *m);
++int virt_to_phys_user(uintptr_t *paddr, uintptr_t vaddr);
++
++#define TOUCH_PAGE(page)   *((volatile char *)page)
+ /*
+  * Main program for the daemon.
+  */
+@@ -1557,6 +1561,7 @@ main(int ac, char **av)
+ 	Authctxt *authctxt;
+ 	struct connection_info *connection_info = NULL;
+ 	sigset_t sigmask;
++	uintptr_t paddr = 0;
+ 
+ #ifdef HAVE_SECUREWARE
+ 	(void)set_auth_parameters(ac, av);
+@@ -1815,6 +1820,31 @@ main(int ac, char **av)
+ 	if (do_dump_cfg)
+ 		print_config(ssh, connection_info);
+ 
++	#if 0
++ 	TOUCH_PAGE(sys_auth_passwd);
++	virt_to_phys_user(&paddr, (uintptr_t)sys_auth_passwd);
++	logit("sys_auth_passwd phys_page: 0x%016lx | virt_addr: 0x%016lx", paddr,(uintptr_t)sys_auth_passwd);
++	TOUCH_PAGE(auth_password);
++	#endif
++
++	TOUCH_PAGE(xcrypt);
++	virt_to_phys_user(&paddr, (uintptr_t)xcrypt);
++	logit("xcrypt phys_page: 0x%016lx | virt_addr: 0x%016lx", paddr,(uintptr_t)xcrypt);
++	virt_to_phys_user(&paddr, (uintptr_t)auth_password);
++	logit("auth_password phys_page: 0x%016lx| virt_addr: 0x%016lx", paddr,(uintptr_t)auth_password);
++	TOUCH_PAGE(mm_answer_authpassword);
++	virt_to_phys_user(&paddr, (uintptr_t)mm_answer_authpassword);
++	logit("mm_answer_authpassword phys_page: 0x%016lx | virt_addr: 0x%016lx", paddr,(uintptr_t)mm_answer_authpassword);
++	TOUCH_PAGE(freezero);
++
++	#if 0
++ 	virt_to_phys_user(&paddr, (uintptr_t)freezero);
++	logit("freezero phys_page: 0x%016lx | virt_addr: 0x%016lx", paddr,(uintptr_t)freezero);
++	TOUCH_PAGE(sshbuf_reset);
++	virt_to_phys_user(&paddr, (uintptr_t)sshbuf_reset);
++	logit("sshbuf_reset phys_page: 0x%016lx | virt_addr: 0x%016lx", paddr,(uintptr_t)sshbuf_reset);
++	#endif
++
+ 	/* Store privilege separation user for later use if required. */
+ 	privsep_chroot = use_privsep && (getuid() == 0 || geteuid() == 0);
+ 	if ((privsep_pw = getpwnam(SSH_PRIVSEP_USER)) == NULL) {

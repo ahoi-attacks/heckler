@@ -1,0 +1,2648 @@
+diff --git a/acme/autocert/autocert.go b/acme/autocert/autocert.go
+index 6b4cdf4..0b8af7d 100644
+--- a/acme/autocert/autocert.go
++++ b/acme/autocert/autocert.go
+@@ -31,8 +31,8 @@ import (
+ 	"sync"
+ 	"time"
+ 
+-	"golang.org/x/crypto/acme"
+ 	"golang.org/x/net/idna"
++	"heckler_ssh_helper/acme"
+ )
+ 
+ // DefaultACMEDirectory is the default ACME Directory URL used when the Manager's Client is nil.
+@@ -1168,7 +1168,7 @@ func validCert(ck certKey, der [][]byte, key crypto.Signer, now time.Time) (leaf
+ }
+ 
+ // https://community.letsencrypt.org/t/2022-01-25-issue-with-tls-alpn-01-validation-method/170450
+-var letsEncryptFixDeployTime = time.Date(2022, time.January, 26, 00, 48, 0, 0, time.UTC)
++var letsEncryptFixDeployTime = time.Date(2022, time.January, 26, 0o0, 48, 0, 0, time.UTC)
+ 
+ // isRevokedLetsEncrypt returns whether the certificate is likely to be part of
+ // a batch of certificates revoked by Let's Encrypt in January 2022. This check
+diff --git a/acme/autocert/autocert_test.go b/acme/autocert/autocert_test.go
+index 7256775..b44cc6e 100644
+--- a/acme/autocert/autocert_test.go
++++ b/acme/autocert/autocert_test.go
+@@ -27,8 +27,8 @@ import (
+ 	"testing"
+ 	"time"
+ 
+-	"golang.org/x/crypto/acme"
+-	"golang.org/x/crypto/acme/autocert/internal/acmetest"
++	"heckler_ssh_helper/acme"
++	"heckler_ssh_helper/acme/autocert/internal/acmetest"
+ )
+ 
+ var (
+@@ -274,8 +274,10 @@ func TestGetCertificate(t *testing.T) {
+ 			prepare: func(t *testing.T, man *Manager, s *acmetest.CAServer) {
+ 				// Make a valid certificate issued after the TLS-ALPN-01
+ 				// revocation window and cache it.
+-				s.IssuerName(pkix.Name{Country: []string{"US"},
+-					Organization: []string{"Let's Encrypt"}, CommonName: "R3"})
++				s.IssuerName(pkix.Name{
++					Country:      []string{"US"},
++					Organization: []string{"Let's Encrypt"}, CommonName: "R3",
++				})
+ 				c := s.Start().LeafCert(exampleDomain, "ECDSA",
+ 					time.Date(2022, time.January, 26, 12, 0, 0, 0, time.UTC),
+ 					time.Date(2122, time.January, 1, 0, 0, 0, 0, time.UTC),
+@@ -294,8 +296,10 @@ func TestGetCertificate(t *testing.T) {
+ 			prepare: func(t *testing.T, man *Manager, s *acmetest.CAServer) {
+ 				// Make a certificate issued during the TLS-ALPN-01
+ 				// revocation window and cache it.
+-				s.IssuerName(pkix.Name{Country: []string{"US"},
+-					Organization: []string{"Let's Encrypt"}, CommonName: "R3"})
++				s.IssuerName(pkix.Name{
++					Country:      []string{"US"},
++					Organization: []string{"Let's Encrypt"}, CommonName: "R3",
++				})
+ 				c := s.Start().LeafCert(exampleDomain, "ECDSA",
+ 					time.Date(2022, time.January, 1, 0, 0, 0, 0, time.UTC),
+ 					time.Date(2122, time.January, 1, 0, 0, 0, 0, time.UTC),
+diff --git a/acme/autocert/example_test.go b/acme/autocert/example_test.go
+index 6c7458b..c3d9510 100644
+--- a/acme/autocert/example_test.go
++++ b/acme/autocert/example_test.go
+@@ -9,7 +9,7 @@ import (
+ 	"log"
+ 	"net/http"
+ 
+-	"golang.org/x/crypto/acme/autocert"
++	"heckler_ssh_helper/acme/autocert"
+ )
+ 
+ func ExampleNewListener() {
+diff --git a/acme/autocert/internal/acmetest/ca.go b/acme/autocert/internal/acmetest/ca.go
+index 0a5ebe7..ca5e2ba 100644
+--- a/acme/autocert/internal/acmetest/ca.go
++++ b/acme/autocert/internal/acmetest/ca.go
+@@ -34,7 +34,7 @@ import (
+ 	"testing"
+ 	"time"
+ 
+-	"golang.org/x/crypto/acme"
++	"heckler_ssh_helper/acme"
+ )
+ 
+ // CAServer is a simple test server which implements ACME spec bits needed for testing.
+@@ -68,7 +68,8 @@ type getCertificateFunc func(hello *tls.ClientHelloInfo) (*tls.Certificate, erro
+ // NewCAServer creates a new ACME test server. The returned CAServer issues
+ // certs signed with the CA roots available in the Roots field.
+ func NewCAServer(t *testing.T) *CAServer {
+-	ca := &CAServer{t: t,
++	ca := &CAServer{
++		t:              t,
+ 		challengeTypes: []string{"fake-01", "tls-alpn-01", "http-01"},
+ 		domainAddr:     make(map[string]string),
+ 		domainGetCert:  make(map[string]getCertificateFunc),
+diff --git a/acme/autocert/renewal_test.go b/acme/autocert/renewal_test.go
+index ffe4af2..2ebaaa1 100644
+--- a/acme/autocert/renewal_test.go
++++ b/acme/autocert/renewal_test.go
+@@ -11,8 +11,8 @@ import (
+ 	"testing"
+ 	"time"
+ 
+-	"golang.org/x/crypto/acme"
+-	"golang.org/x/crypto/acme/autocert/internal/acmetest"
++	"heckler_ssh_helper/acme"
++	"heckler_ssh_helper/acme/autocert/internal/acmetest"
+ )
+ 
+ func TestRenewalNext(t *testing.T) {
+diff --git a/acme/http.go b/acme/http.go
+index 58836e5..5846f6d 100644
+--- a/acme/http.go
++++ b/acme/http.go
+@@ -277,7 +277,7 @@ var packageVersion string
+ // userAgent returns the User-Agent header value. It includes the package name,
+ // the module version (if available), and the c.UserAgent value (if set).
+ func (c *Client) userAgent() string {
+-	ua := "golang.org/x/crypto/acme"
++	ua := "heckler_ssh_helper/acme"
+ 	if packageVersion != "" {
+ 		ua += "@" + packageVersion
+ 	}
+diff --git a/acme/http_test.go b/acme/http_test.go
+index d124e4e..b9e10fd 100644
+--- a/acme/http_test.go
++++ b/acme/http_test.go
+@@ -216,7 +216,7 @@ func TestUserAgent(t *testing.T) {
+ 	for _, custom := range []string{"", "CUSTOM_UA"} {
+ 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+ 			t.Log(r.UserAgent())
+-			if s := "golang.org/x/crypto/acme"; !strings.Contains(r.UserAgent(), s) {
++			if s := "heckler_ssh_helper/acme"; !strings.Contains(r.UserAgent(), s) {
+ 				t.Errorf("expected User-Agent to contain %q, got %q", s, r.UserAgent())
+ 			}
+ 			if !strings.Contains(r.UserAgent(), custom) {
+diff --git a/acme/internal/acmeprobe/prober.go b/acme/internal/acmeprobe/prober.go
+index 25dba0c..9fdb7b0 100644
+--- a/acme/internal/acmeprobe/prober.go
++++ b/acme/internal/acmeprobe/prober.go
+@@ -45,7 +45,7 @@ import (
+ 	"strings"
+ 	"time"
+ 
+-	"golang.org/x/crypto/acme"
++	"heckler_ssh_helper/acme"
+ )
+ 
+ var (
+diff --git a/acme/version_go112.go b/acme/version_go112.go
+index b9efdb5..1107fe5 100644
+--- a/acme/version_go112.go
++++ b/acme/version_go112.go
+@@ -17,7 +17,7 @@ func init() {
+ 		return
+ 	}
+ 	for _, m := range info.Deps {
+-		if m.Path != "golang.org/x/crypto" {
++		if m.Path != "heckler_ssh_helper" {
+ 			continue
+ 		}
+ 		if m.Replace == nil {
+diff --git a/argon2/argon2.go b/argon2/argon2.go
+index 29f0a2d..2db7552 100644
+--- a/argon2/argon2.go
++++ b/argon2/argon2.go
+@@ -38,7 +38,7 @@ import (
+ 	"encoding/binary"
+ 	"sync"
+ 
+-	"golang.org/x/crypto/blake2b"
++	"heckler_ssh_helper/blake2b"
+ )
+ 
+ // The Argon2 version implemented by this package.
+@@ -234,7 +234,6 @@ func processBlocks(B []block, time, memory, threads uint32, mode int) {
+ 			wg.Wait()
+ 		}
+ 	}
+-
+ }
+ 
+ func extractKey(B []block, memory, threads, keyLen uint32) []byte {
+diff --git a/argon2/blake2b.go b/argon2/blake2b.go
+index 10f4694..8e98831 100644
+--- a/argon2/blake2b.go
++++ b/argon2/blake2b.go
+@@ -8,7 +8,7 @@ import (
+ 	"encoding/binary"
+ 	"hash"
+ 
+-	"golang.org/x/crypto/blake2b"
++	"heckler_ssh_helper/blake2b"
+ )
+ 
+ // blake2bHash computes an arbitrary long hash value of in
+diff --git a/bcrypt/bcrypt.go b/bcrypt/bcrypt.go
+index 5577c0f..4bcfaf9 100644
+--- a/bcrypt/bcrypt.go
++++ b/bcrypt/bcrypt.go
+@@ -4,7 +4,7 @@
+ 
+ // Package bcrypt implements Provos and Mazières's bcrypt adaptive hashing
+ // algorithm. See http://www.usenix.org/event/usenix99/provos/provos.pdf
+-package bcrypt // import "golang.org/x/crypto/bcrypt"
++package bcrypt // import "heckler_ssh_helper/bcrypt"
+ 
+ // The code is a port of Provos and Mazières's C implementation.
+ import (
+@@ -15,7 +15,7 @@ import (
+ 	"io"
+ 	"strconv"
+ 
+-	"golang.org/x/crypto/blowfish"
++	"heckler_ssh_helper/blowfish"
+ )
+ 
+ const (
+diff --git a/blake2s/blake2s.go b/blake2s/blake2s.go
+index e3f46aa..d4cd346 100644
+--- a/blake2s/blake2s.go
++++ b/blake2s/blake2s.go
+@@ -16,7 +16,7 @@
+ //
+ // BLAKE2X is a construction to compute hash values larger than 32 bytes. It
+ // can produce hash values between 0 and 65535 bytes.
+-package blake2s // import "golang.org/x/crypto/blake2s"
++package blake2s // import "heckler_ssh_helper/blake2s"
+ 
+ import (
+ 	"encoding/binary"
+diff --git a/blowfish/cipher.go b/blowfish/cipher.go
+index 213bf20..2affe40 100644
+--- a/blowfish/cipher.go
++++ b/blowfish/cipher.go
+@@ -10,8 +10,8 @@
+ //
+ // Deprecated: any new system should use AES (from crypto/aes, if necessary in
+ // an AEAD mode like crypto/cipher.NewGCM) or XChaCha20-Poly1305 (from
+-// golang.org/x/crypto/chacha20poly1305).
+-package blowfish // import "golang.org/x/crypto/blowfish"
++// heckler_ssh_helper/chacha20poly1305).
++package blowfish // import "heckler_ssh_helper/blowfish"
+ 
+ // The code is a port of Bruce Schneier's C implementation.
+ // See https://www.schneier.com/blowfish.html.
+diff --git a/bn256/bn256.go b/bn256/bn256.go
+index 5d6d198..309a5b9 100644
+--- a/bn256/bn256.go
++++ b/bn256/bn256.go
+@@ -23,7 +23,7 @@
+ // elliptic curve. This package is frozen, and not implemented in constant time.
+ // There is a more complete implementation at github.com/cloudflare/bn256, but
+ // note that it suffers from the same security issues of the underlying curve.
+-package bn256 // import "golang.org/x/crypto/bn256"
++package bn256 // import "heckler_ssh_helper/bn256"
+ 
+ import (
+ 	"crypto/rand"
+diff --git a/cast5/cast5.go b/cast5/cast5.go
+index 425e8ee..5b1660b 100644
+--- a/cast5/cast5.go
++++ b/cast5/cast5.go
+@@ -10,16 +10,18 @@
+ //
+ // Deprecated: any new system should use AES (from crypto/aes, if necessary in
+ // an AEAD mode like crypto/cipher.NewGCM) or XChaCha20-Poly1305 (from
+-// golang.org/x/crypto/chacha20poly1305).
+-package cast5 // import "golang.org/x/crypto/cast5"
++// heckler_ssh_helper/chacha20poly1305).
++package cast5 // import "heckler_ssh_helper/cast5"
+ 
+ import (
+ 	"errors"
+ 	"math/bits"
+ )
+ 
+-const BlockSize = 8
+-const KeySize = 16
++const (
++	BlockSize = 8
++	KeySize   = 16
++)
+ 
+ type Cipher struct {
+ 	masking [16]uint32
+@@ -108,8 +110,10 @@ func (c *Cipher) Decrypt(dst, src []byte) {
+ 	dst[7] = uint8(l)
+ }
+ 
+-type keyScheduleA [4][7]uint8
+-type keyScheduleB [4][5]uint8
++type (
++	keyScheduleA [4][7]uint8
++	keyScheduleB [4][5]uint8
++)
+ 
+ // keyScheduleRound contains the magic values for a round of the key schedule.
+ // The keyScheduleA deals with the lines like:
+@@ -130,8 +134,10 @@ type keyScheduleB [4][5]uint8
+ // elements are the S-box indexes. They use the same form as in keyScheduleA,
+ // above.
+ 
+-type keyScheduleRound struct{}
+-type keySchedule []keyScheduleRound
++type (
++	keyScheduleRound struct{}
++	keySchedule      []keyScheduleRound
++)
+ 
+ var schedule = []struct {
+ 	a keyScheduleA
+diff --git a/chacha20/chacha_generic.go b/chacha20/chacha_generic.go
+index 93eb5ae..07cdc9e 100644
+--- a/chacha20/chacha_generic.go
++++ b/chacha20/chacha_generic.go
+@@ -12,7 +12,7 @@ import (
+ 	"errors"
+ 	"math/bits"
+ 
+-	"golang.org/x/crypto/internal/alias"
++	"heckler_ssh_helper/internal/alias"
+ )
+ 
+ const (
+@@ -68,7 +68,7 @@ var _ cipher.Stream = (*Cipher)(nil)
+ // Note that ChaCha20, like all stream ciphers, is not authenticated and allows
+ // attackers to silently tamper with the plaintext. For this reason, it is more
+ // appropriate as a building block than as a standalone encryption mechanism.
+-// Instead, consider using package golang.org/x/crypto/chacha20poly1305.
++// Instead, consider using package heckler_ssh_helper/chacha20poly1305.
+ func NewUnauthenticatedCipher(key, nonce []byte) (*Cipher, error) {
+ 	// This function is split into a wrapper so that the Cipher allocation will
+ 	// be inlined, and depending on how the caller uses the return value, won't
+diff --git a/chacha20poly1305/chacha20poly1305.go b/chacha20poly1305/chacha20poly1305.go
+index 93da732..6b5cfec 100644
+--- a/chacha20poly1305/chacha20poly1305.go
++++ b/chacha20poly1305/chacha20poly1305.go
+@@ -5,7 +5,7 @@
+ // Package chacha20poly1305 implements the ChaCha20-Poly1305 AEAD and its
+ // extended nonce variant XChaCha20-Poly1305, as specified in RFC 8439 and
+ // draft-irtf-cfrg-xchacha-01.
+-package chacha20poly1305 // import "golang.org/x/crypto/chacha20poly1305"
++package chacha20poly1305 // import "heckler_ssh_helper/chacha20poly1305"
+ 
+ import (
+ 	"crypto/cipher"
+diff --git a/chacha20poly1305/chacha20poly1305_amd64.go b/chacha20poly1305/chacha20poly1305_amd64.go
+index 0c408c5..985e77b 100644
+--- a/chacha20poly1305/chacha20poly1305_amd64.go
++++ b/chacha20poly1305/chacha20poly1305_amd64.go
+@@ -10,8 +10,8 @@ package chacha20poly1305
+ import (
+ 	"encoding/binary"
+ 
+-	"golang.org/x/crypto/internal/alias"
+ 	"golang.org/x/sys/cpu"
++	"heckler_ssh_helper/internal/alias"
+ )
+ 
+ //go:noescape
+@@ -20,9 +20,7 @@ func chacha20Poly1305Open(dst []byte, key []uint32, src, ad []byte) bool
+ //go:noescape
+ func chacha20Poly1305Seal(dst []byte, key []uint32, src, ad []byte)
+ 
+-var (
+-	useAVX2 = cpu.X86.HasAVX2 && cpu.X86.HasBMI2
+-)
++var useAVX2 = cpu.X86.HasAVX2 && cpu.X86.HasBMI2
+ 
+ // setupState writes a ChaCha20 input matrix to state. See
+ // https://tools.ietf.org/html/rfc7539#section-2.3.
+diff --git a/chacha20poly1305/chacha20poly1305_generic.go b/chacha20poly1305/chacha20poly1305_generic.go
+index 6313898..7fee7ec 100644
+--- a/chacha20poly1305/chacha20poly1305_generic.go
++++ b/chacha20poly1305/chacha20poly1305_generic.go
+@@ -7,9 +7,9 @@ package chacha20poly1305
+ import (
+ 	"encoding/binary"
+ 
+-	"golang.org/x/crypto/chacha20"
+-	"golang.org/x/crypto/internal/alias"
+-	"golang.org/x/crypto/internal/poly1305"
++	"heckler_ssh_helper/chacha20"
++	"heckler_ssh_helper/internal/alias"
++	"heckler_ssh_helper/internal/poly1305"
+ )
+ 
+ func writeWithPadding(p *poly1305.MAC, b []byte) {
+diff --git a/chacha20poly1305/xchacha20poly1305.go b/chacha20poly1305/xchacha20poly1305.go
+index 1cebfe9..03cd4b5 100644
+--- a/chacha20poly1305/xchacha20poly1305.go
++++ b/chacha20poly1305/xchacha20poly1305.go
+@@ -8,7 +8,7 @@ import (
+ 	"crypto/cipher"
+ 	"errors"
+ 
+-	"golang.org/x/crypto/chacha20"
++	"heckler_ssh_helper/chacha20"
+ )
+ 
+ type xchacha20poly1305 struct {
+diff --git a/cryptobyte/asn1.go b/cryptobyte/asn1.go
+index 6fc2838..5ed626e 100644
+--- a/cryptobyte/asn1.go
++++ b/cryptobyte/asn1.go
+@@ -11,7 +11,7 @@ import (
+ 	"reflect"
+ 	"time"
+ 
+-	"golang.org/x/crypto/cryptobyte/asn1"
++	"heckler_ssh_helper/cryptobyte/asn1"
+ )
+ 
+ // This file contains ASN.1-related methods for String and Builder.
+diff --git a/cryptobyte/asn1/asn1.go b/cryptobyte/asn1/asn1.go
+index cda8e3e..6a1daf3 100644
+--- a/cryptobyte/asn1/asn1.go
++++ b/cryptobyte/asn1/asn1.go
+@@ -4,7 +4,7 @@
+ 
+ // Package asn1 contains supporting types for parsing and building ASN.1
+ // messages with the cryptobyte package.
+-package asn1 // import "golang.org/x/crypto/cryptobyte/asn1"
++package asn1 // import "heckler_ssh_helper/cryptobyte/asn1"
+ 
+ // Tag represents an ASN.1 identifier octet, consisting of a tag number
+ // (indicating a type) and class (such as context-specific or constructed).
+diff --git a/cryptobyte/asn1_test.go b/cryptobyte/asn1_test.go
+index e3f53a9..e325f37 100644
+--- a/cryptobyte/asn1_test.go
++++ b/cryptobyte/asn1_test.go
+@@ -12,7 +12,7 @@ import (
+ 	"testing"
+ 	"time"
+ 
+-	"golang.org/x/crypto/cryptobyte/asn1"
++	"heckler_ssh_helper/cryptobyte/asn1"
+ )
+ 
+ type readASN1Test struct {
+@@ -201,7 +201,6 @@ func TestReadASN1IntegerSigned(t *testing.T) {
+ 			var b Builder
+ 			b.AddASN1Int64WithTag(test.out, tag)
+ 			result, err := b.Bytes()
+-
+ 			if err != nil {
+ 				t.Errorf("#%d: AddASN1Int64WithTag failed: %s", i, err)
+ 				continue
+@@ -308,10 +307,10 @@ func TestReadASN1GeneralizedTime(t *testing.T) {
+ 		ok  bool
+ 		out time.Time
+ 	}{
+-		{"20100102030405Z", true, time.Date(2010, 01, 02, 03, 04, 05, 0, time.UTC)},
++		{"20100102030405Z", true, time.Date(2010, 0o1, 0o2, 0o3, 0o4, 0o5, 0, time.UTC)},
+ 		{"20100102030405", false, time.Time{}},
+-		{"20100102030405+0607", true, time.Date(2010, 01, 02, 03, 04, 05, 0, time.FixedZone("", 6*60*60+7*60))},
+-		{"20100102030405-0607", true, time.Date(2010, 01, 02, 03, 04, 05, 0, time.FixedZone("", -6*60*60-7*60))},
++		{"20100102030405+0607", true, time.Date(2010, 0o1, 0o2, 0o3, 0o4, 0o5, 0, time.FixedZone("", 6*60*60+7*60))},
++		{"20100102030405-0607", true, time.Date(2010, 0o1, 0o2, 0o3, 0o4, 0o5, 0, time.FixedZone("", -6*60*60-7*60))},
+ 		/* These are invalid times. However, the time package normalises times
+ 		 * and they were accepted in some versions. See #11134. */
+ 		{"00000100000000Z", false, time.Time{}},
+@@ -347,18 +346,18 @@ func TestReadASN1UTCTime(t *testing.T) {
+ 		ok  bool
+ 		out time.Time
+ 	}{
+-		{"000102030405Z", true, time.Date(2000, 01, 02, 03, 04, 05, 0, time.UTC)},
+-		{"500102030405Z", true, time.Date(1950, 01, 02, 03, 04, 05, 0, time.UTC)},
+-		{"490102030405Z", true, time.Date(2049, 01, 02, 03, 04, 05, 0, time.UTC)},
+-		{"990102030405Z", true, time.Date(1999, 01, 02, 03, 04, 05, 0, time.UTC)},
+-		{"250102030405Z", true, time.Date(2025, 01, 02, 03, 04, 05, 0, time.UTC)},
+-		{"750102030405Z", true, time.Date(1975, 01, 02, 03, 04, 05, 0, time.UTC)},
+-		{"000102030405+0905", true, time.Date(2000, 01, 02, 03, 04, 05, 0, time.FixedZone("", 9*60*60+5*60))},
+-		{"000102030405-0905", true, time.Date(2000, 01, 02, 03, 04, 05, 0, time.FixedZone("", -9*60*60-5*60))},
+-		{"0001020304Z", true, time.Date(2000, 01, 02, 03, 04, 0, 0, time.UTC)},
+-		{"5001020304Z", true, time.Date(1950, 01, 02, 03, 04, 00, 0, time.UTC)},
+-		{"0001020304+0905", true, time.Date(2000, 01, 02, 03, 04, 0, 0, time.FixedZone("", 9*60*60+5*60))},
+-		{"0001020304-0905", true, time.Date(2000, 01, 02, 03, 04, 0, 0, time.FixedZone("", -9*60*60-5*60))},
++		{"000102030405Z", true, time.Date(2000, 0o1, 0o2, 0o3, 0o4, 0o5, 0, time.UTC)},
++		{"500102030405Z", true, time.Date(1950, 0o1, 0o2, 0o3, 0o4, 0o5, 0, time.UTC)},
++		{"490102030405Z", true, time.Date(2049, 0o1, 0o2, 0o3, 0o4, 0o5, 0, time.UTC)},
++		{"990102030405Z", true, time.Date(1999, 0o1, 0o2, 0o3, 0o4, 0o5, 0, time.UTC)},
++		{"250102030405Z", true, time.Date(2025, 0o1, 0o2, 0o3, 0o4, 0o5, 0, time.UTC)},
++		{"750102030405Z", true, time.Date(1975, 0o1, 0o2, 0o3, 0o4, 0o5, 0, time.UTC)},
++		{"000102030405+0905", true, time.Date(2000, 0o1, 0o2, 0o3, 0o4, 0o5, 0, time.FixedZone("", 9*60*60+5*60))},
++		{"000102030405-0905", true, time.Date(2000, 0o1, 0o2, 0o3, 0o4, 0o5, 0, time.FixedZone("", -9*60*60-5*60))},
++		{"0001020304Z", true, time.Date(2000, 0o1, 0o2, 0o3, 0o4, 0, 0, time.UTC)},
++		{"5001020304Z", true, time.Date(1950, 0o1, 0o2, 0o3, 0o4, 0o0, 0, time.UTC)},
++		{"0001020304+0905", true, time.Date(2000, 0o1, 0o2, 0o3, 0o4, 0, 0, time.FixedZone("", 9*60*60+5*60))},
++		{"0001020304-0905", true, time.Date(2000, 0o1, 0o2, 0o3, 0o4, 0, 0, time.FixedZone("", -9*60*60-5*60))},
+ 		{"000102030405Z0700", false, time.Time{}},
+ 		{"000102030405", false, time.Time{}},
+ 	}
+diff --git a/cryptobyte/example_test.go b/cryptobyte/example_test.go
+index 86c098a..03fe8b8 100644
+--- a/cryptobyte/example_test.go
++++ b/cryptobyte/example_test.go
+@@ -8,8 +8,8 @@ import (
+ 	"errors"
+ 	"fmt"
+ 
+-	"golang.org/x/crypto/cryptobyte"
+-	"golang.org/x/crypto/cryptobyte/asn1"
++	"heckler_ssh_helper/cryptobyte"
++	"heckler_ssh_helper/cryptobyte/asn1"
+ )
+ 
+ func ExampleString_lengthPrefixed() {
+diff --git a/cryptobyte/string.go b/cryptobyte/string.go
+index 10692a8..26952de 100644
+--- a/cryptobyte/string.go
++++ b/cryptobyte/string.go
+@@ -15,7 +15,7 @@
+ //
+ // See the documentation and examples for the Builder and String types to get
+ // started.
+-package cryptobyte // import "golang.org/x/crypto/cryptobyte"
++package cryptobyte // import "heckler_ssh_helper/cryptobyte"
+ 
+ // String represents a string of bytes. It provides methods for parsing
+ // fixed-length and length-prefixed values from it.
+diff --git a/curve25519/curve25519.go b/curve25519/curve25519.go
+index 00f963e..3ece4eb 100644
+--- a/curve25519/curve25519.go
++++ b/curve25519/curve25519.go
+@@ -8,7 +8,7 @@
+ //
+ // Starting in Go 1.20, this package is a wrapper for the X25519 implementation
+ // in the crypto/ecdh package.
+-package curve25519 // import "golang.org/x/crypto/curve25519"
++package curve25519 // import "heckler_ssh_helper/curve25519"
+ 
+ // ScalarMult sets dst to the product scalar * point.
+ //
+diff --git a/curve25519/curve25519_compat.go b/curve25519/curve25519_compat.go
+index ba647e8..7792021 100644
+--- a/curve25519/curve25519_compat.go
++++ b/curve25519/curve25519_compat.go
+@@ -9,9 +9,8 @@ package curve25519
+ import (
+ 	"crypto/subtle"
+ 	"errors"
++	"heckler_ssh_helper/curve25519/internal/field"
+ 	"strconv"
+-
+-	"golang.org/x/crypto/curve25519/internal/field"
+ )
+ 
+ func scalarMult(dst, scalar, point *[32]byte) {
+diff --git a/curve25519/curve25519_test.go b/curve25519/curve25519_test.go
+index e2b338b..eb0c2ea 100644
+--- a/curve25519/curve25519_test.go
++++ b/curve25519/curve25519_test.go
+@@ -10,7 +10,7 @@ import (
+ 	"encoding/hex"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/curve25519"
++	"heckler_ssh_helper/curve25519"
+ )
+ 
+ const expectedHex = "89161fde887b2b53de549af483940106ecc114d6982daa98256de23bdf77661a"
+diff --git a/curve25519/internal/field/_asm/fe_amd64_asm.go b/curve25519/internal/field/_asm/fe_amd64_asm.go
+index 1f36529..4401a4f 100644
+--- a/curve25519/internal/field/_asm/fe_amd64_asm.go
++++ b/curve25519/internal/field/_asm/fe_amd64_asm.go
+@@ -12,15 +12,15 @@ import (
+ 	. "github.com/mmcloughlin/avo/operand"
+ 	. "github.com/mmcloughlin/avo/reg"
+ 
+-	// Ensure "go mod tidy" doesn't remove the golang.org/x/crypto module
++	// Ensure "go mod tidy" doesn't remove the heckler_ssh_helper module
+ 	// dependency, which is necessary to access the field.Element type.
+-	_ "golang.org/x/crypto/curve25519"
++	_ "heckler_ssh_helper/curve25519"
+ )
+ 
+ //go:generate go run . -out ../fe_amd64.s -stubs ../fe_amd64.go -pkg field
+ 
+ func main() {
+-	Package("golang.org/x/crypto/curve25519/internal/field")
++	Package("heckler_ssh_helper/curve25519/internal/field")
+ 	ConstraintExpr("amd64,gc,!purego")
+ 	feMul()
+ 	feSquare()
+diff --git a/curve25519/internal/field/_asm/go.mod b/curve25519/internal/field/_asm/go.mod
+index 5b3dba3..27483f6 100644
+--- a/curve25519/internal/field/_asm/go.mod
++++ b/curve25519/internal/field/_asm/go.mod
+@@ -4,7 +4,7 @@ go 1.16
+ 
+ require (
+ 	github.com/mmcloughlin/avo v0.4.0
+-	golang.org/x/crypto v0.0.0
++	heckler_ssh_helper v0.0.0
+ )
+ 
+-replace golang.org/x/crypto v0.0.0 => ../../../..
++replace heckler_ssh_helper v0.0.0 => ../../../..
+diff --git a/curve25519/internal/field/_asm/go.sum b/curve25519/internal/field/_asm/go.sum
+index 4c9bbf6..c713d7e 100644
+--- a/curve25519/internal/field/_asm/go.sum
++++ b/curve25519/internal/field/_asm/go.sum
+@@ -2,8 +2,8 @@ github.com/mmcloughlin/avo v0.4.0 h1:jeHDRktVD+578ULxWpQHkilor6pkdLF7u7EiTzDbfcU
+ github.com/mmcloughlin/avo v0.4.0/go.mod h1:RW9BfYA3TgO9uCdNrKU2h6J8cPD8ZLznvfgHAeszb1s=
+ github.com/yuin/goldmark v1.4.0/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
+ golang.org/x/arch v0.0.0-20210923205945-b76863e36670/go.mod h1:5om86z9Hs0C8fWVUuoMHwpExlXzs5Tkyp9hOrfG7pp8=
+-golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
+-golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
++heckler_ssh_helper v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
++heckler_ssh_helper v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
+ golang.org/x/mod v0.4.2 h1:Gz96sIWK3OalVv/I/qNygP42zyoKp3xptRVCWRFEBvo=
+ golang.org/x/mod v0.4.2/go.mod h1:s0Qsj1ACt9ePp/hMypM3fl4fZqREWJwdYDEqhRiZZUA=
+ golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
+diff --git a/ed25519/ed25519_test.go b/ed25519/ed25519_test.go
+index ab433ba..c47400c 100644
+--- a/ed25519/ed25519_test.go
++++ b/ed25519/ed25519_test.go
+@@ -8,7 +8,7 @@ import (
+ 	ed25519std "crypto/ed25519"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/ed25519"
++	"heckler_ssh_helper/ed25519"
+ )
+ 
+ func TestTypeAlias(t *testing.T) {
+diff --git a/go.mod b/go.mod
+index a25e214..abdb8e7 100644
+--- a/go.mod
++++ b/go.mod
+@@ -1,4 +1,4 @@
+-module golang.org/x/crypto
++module heckler_ssh_helper
+ 
+ go 1.17
+ 
+diff --git a/go.sum b/go.sum
+index e2faf11..6e402b7 100644
+--- a/go.sum
++++ b/go.sum
+@@ -1,6 +1,6 @@
+ github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
+-golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
+-golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
++heckler_ssh_helper v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
++heckler_ssh_helper v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
+ golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4/go.mod h1:jJ57K6gSWd91VN4djpZkiMVwK6gcyfeH4XE8wZrZaV4=
+ golang.org/x/mod v0.8.0/go.mod h1:iBbtSCu2XBx23ZKBPSOrRkjjQPZFPuis4dIYUhu/chs=
+ golang.org/x/net v0.0.0-20190620200207-3b0461eec859/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
+diff --git a/hkdf/example_test.go b/hkdf/example_test.go
+index e89c260..41b3a3d 100644
+--- a/hkdf/example_test.go
++++ b/hkdf/example_test.go
+@@ -11,7 +11,7 @@ import (
+ 	"fmt"
+ 	"io"
+ 
+-	"golang.org/x/crypto/hkdf"
++	"heckler_ssh_helper/hkdf"
+ )
+ 
+ // Usage example that expands one master secret into three other
+diff --git a/hkdf/hkdf.go b/hkdf/hkdf.go
+index dda3f14..83c12c2 100644
+--- a/hkdf/hkdf.go
++++ b/hkdf/hkdf.go
+@@ -8,7 +8,7 @@
+ // HKDF is a cryptographic key derivation function (KDF) with the goal of
+ // expanding limited input keying material into one or more cryptographically
+ // strong secret keys.
+-package hkdf // import "golang.org/x/crypto/hkdf"
++package hkdf // import "heckler_ssh_helper/hkdf"
+ 
+ import (
+ 	"crypto/hmac"
+diff --git a/internal/wycheproof/aead_test.go b/internal/wycheproof/aead_test.go
+index 292d854..5bd9f73 100644
+--- a/internal/wycheproof/aead_test.go
++++ b/internal/wycheproof/aead_test.go
+@@ -11,13 +11,12 @@ import (
+ 	"fmt"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/chacha20poly1305"
++	"heckler_ssh_helper/chacha20poly1305"
+ )
+ 
+ func TestAEAD(t *testing.T) {
+ 	// AeadTestVector
+ 	type AeadTestVector struct {
+-
+ 		// additional authenticated data
+ 		Aad string `json:"aad,omitempty"`
+ 
+@@ -50,12 +49,10 @@ func TestAEAD(t *testing.T) {
+ 	}
+ 
+ 	// Notes a description of the labels used in the test vectors
+-	type Notes struct {
+-	}
++	type Notes struct{}
+ 
+ 	// AeadTestGroup
+ 	type AeadTestGroup struct {
+-
+ 		// the IV size in bits
+ 		IvSize int `json:"ivSize,omitempty"`
+ 
+@@ -70,7 +67,6 @@ func TestAEAD(t *testing.T) {
+ 
+ 	// Root
+ 	type Root struct {
+-
+ 		// the primitive tested in the test file
+ 		Algorithm string `json:"algorithm,omitempty"`
+ 
+diff --git a/internal/wycheproof/dsa_test.go b/internal/wycheproof/dsa_test.go
+index e554708..e65a544 100644
+--- a/internal/wycheproof/dsa_test.go
++++ b/internal/wycheproof/dsa_test.go
+@@ -8,13 +8,12 @@ import (
+ 	"crypto/dsa"
+ 	"testing"
+ 
+-	wdsa "golang.org/x/crypto/internal/wycheproof/internal/dsa"
++	wdsa "heckler_ssh_helper/internal/wycheproof/internal/dsa"
+ )
+ 
+ func TestDsa(t *testing.T) {
+ 	// AsnSignatureTestVector
+ 	type AsnSignatureTestVector struct {
+-
+ 		// A brief description of the test case
+ 		Comment string `json:"comment,omitempty"`
+ 
+@@ -36,7 +35,6 @@ func TestDsa(t *testing.T) {
+ 
+ 	// DsaPublicKey
+ 	type DsaPublicKey struct {
+-
+ 		// the generator of the multiplicative subgroup
+ 		G string `json:"g,omitempty"`
+ 
+@@ -58,7 +56,6 @@ func TestDsa(t *testing.T) {
+ 
+ 	// DsaTestGroup
+ 	type DsaTestGroup struct {
+-
+ 		// unenocded DSA public key
+ 		Key *DsaPublicKey `json:"key,omitempty"`
+ 
+@@ -75,12 +72,10 @@ func TestDsa(t *testing.T) {
+ 	}
+ 
+ 	// Notes a description of the labels used in the test vectors
+-	type Notes struct {
+-	}
++	type Notes struct{}
+ 
+ 	// Root
+ 	type Root struct {
+-
+ 		// the primitive tested in the test file
+ 		Algorithm string `json:"algorithm,omitempty"`
+ 
+diff --git a/internal/wycheproof/ecdh_test.go b/internal/wycheproof/ecdh_test.go
+index a3918ba..70bf1a5 100644
+--- a/internal/wycheproof/ecdh_test.go
++++ b/internal/wycheproof/ecdh_test.go
+@@ -14,8 +14,8 @@ import (
+ 	"fmt"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/cryptobyte"
+-	casn1 "golang.org/x/crypto/cryptobyte/asn1"
++	"heckler_ssh_helper/cryptobyte"
++	casn1 "heckler_ssh_helper/cryptobyte/asn1"
+ )
+ 
+ func TestECDH(t *testing.T) {
+diff --git a/internal/wycheproof/ecdsa_test.go b/internal/wycheproof/ecdsa_test.go
+index 80125ad..fc84a42 100644
+--- a/internal/wycheproof/ecdsa_test.go
++++ b/internal/wycheproof/ecdsa_test.go
+@@ -9,8 +9,8 @@ import (
+ 	"math/big"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/cryptobyte"
+-	"golang.org/x/crypto/cryptobyte/asn1"
++	"heckler_ssh_helper/cryptobyte"
++	"heckler_ssh_helper/cryptobyte/asn1"
+ )
+ 
+ func TestECDSA(t *testing.T) {
+diff --git a/internal/wycheproof/hkdf_test.go b/internal/wycheproof/hkdf_test.go
+index 6b72e2c..ef86efe 100644
+--- a/internal/wycheproof/hkdf_test.go
++++ b/internal/wycheproof/hkdf_test.go
+@@ -9,14 +9,12 @@ import (
+ 	"io"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/hkdf"
++	"heckler_ssh_helper/hkdf"
+ )
+ 
+ func TestHkdf(t *testing.T) {
+-
+ 	// HkdfTestVector
+ 	type HkdfTestVector struct {
+-
+ 		// A brief description of the test case
+ 		Comment string `json:"comment,omitempty"`
+ 
+@@ -46,12 +44,10 @@ func TestHkdf(t *testing.T) {
+ 	}
+ 
+ 	// Notes a description of the labels used in the test vectors
+-	type Notes struct {
+-	}
++	type Notes struct{}
+ 
+ 	// HkdfTestGroup
+ 	type HkdfTestGroup struct {
+-
+ 		// the size of the ikm in bits
+ 		KeySize int               `json:"keySize,omitempty"`
+ 		Tests   []*HkdfTestVector `json:"tests,omitempty"`
+@@ -60,7 +56,6 @@ func TestHkdf(t *testing.T) {
+ 
+ 	// Root
+ 	type Root struct {
+-
+ 		// the primitive tested in the test file
+ 		Algorithm string `json:"algorithm,omitempty"`
+ 
+diff --git a/internal/wycheproof/internal/dsa/dsa.go b/internal/wycheproof/internal/dsa/dsa.go
+index 3101dfc..8e81961 100644
+--- a/internal/wycheproof/internal/dsa/dsa.go
++++ b/internal/wycheproof/internal/dsa/dsa.go
+@@ -10,8 +10,8 @@ import (
+ 	"crypto/dsa"
+ 	"math/big"
+ 
+-	"golang.org/x/crypto/cryptobyte"
+-	"golang.org/x/crypto/cryptobyte/asn1"
++	"heckler_ssh_helper/cryptobyte"
++	"heckler_ssh_helper/cryptobyte/asn1"
+ )
+ 
+ // VerifyASN1 verifies the ASN1 encoded signature, sig, of hash using the
+diff --git a/main.go b/main.go
+new file mode 100644
+index 0000000..ef30d4f
+--- /dev/null
++++ b/main.go
+@@ -0,0 +1,25 @@
++package main
++
++import (
++	"fmt"
++	"log"
++	"os"
++	"heckler_ssh_helper/ssh"
++)
++
++func main() {
++	config := &ssh.ClientConfig{
++		User: "root",
++		Auth: []ssh.AuthMethod{
++			ssh.Password("wrong-password"),
++		},
++		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
++	}
++	// connect ot ssh server
++	conn, err := ssh.Dial("tcp", os.Args[1], config)
++	if err != nil {
++		log.Fatal(err)
++	}
++
++	fmt.Println(conn.SessionID())
++}
+diff --git a/md4/example_test.go b/md4/example_test.go
+index db3f59b..436ad31 100644
+--- a/md4/example_test.go
++++ b/md4/example_test.go
+@@ -8,7 +8,7 @@ import (
+ 	"fmt"
+ 	"io"
+ 
+-	"golang.org/x/crypto/md4"
++	"heckler_ssh_helper/md4"
+ )
+ 
+ func ExampleNew() {
+diff --git a/md4/md4.go b/md4/md4.go
+index 59d3480..43f1ca5 100644
+--- a/md4/md4.go
++++ b/md4/md4.go
+@@ -7,7 +7,7 @@
+ // Deprecated: MD4 is cryptographically broken and should should only be used
+ // where compatibility with legacy systems, not security, is the goal. Instead,
+ // use a secure hash like SHA-256 (from crypto/sha256).
+-package md4 // import "golang.org/x/crypto/md4"
++package md4 // import "heckler_ssh_helper/md4"
+ 
+ import (
+ 	"crypto"
+diff --git a/nacl/auth/example_test.go b/nacl/auth/example_test.go
+index 02a2cd6..148f77a 100644
+--- a/nacl/auth/example_test.go
++++ b/nacl/auth/example_test.go
+@@ -8,7 +8,7 @@ import (
+ 	"encoding/hex"
+ 	"fmt"
+ 
+-	"golang.org/x/crypto/nacl/auth"
++	"heckler_ssh_helper/nacl/auth"
+ )
+ 
+ func Example() {
+diff --git a/nacl/box/box.go b/nacl/box/box.go
+index 7f3b830..10a4617 100644
+--- a/nacl/box/box.go
++++ b/nacl/box/box.go
+@@ -35,16 +35,16 @@ Anonymous sealing/opening is an extension of NaCl defined by and interoperable
+ with libsodium:
+ https://libsodium.gitbook.io/doc/public-key_cryptography/sealed_boxes.
+ */
+-package box // import "golang.org/x/crypto/nacl/box"
++package box // import "heckler_ssh_helper/nacl/box"
+ 
+ import (
+ 	cryptorand "crypto/rand"
+ 	"io"
+ 
+-	"golang.org/x/crypto/blake2b"
+-	"golang.org/x/crypto/curve25519"
+-	"golang.org/x/crypto/nacl/secretbox"
+-	"golang.org/x/crypto/salsa20/salsa"
++	"heckler_ssh_helper/blake2b"
++	"heckler_ssh_helper/curve25519"
++	"heckler_ssh_helper/nacl/secretbox"
++	"heckler_ssh_helper/salsa20/salsa"
+ )
+ 
+ const (
+diff --git a/nacl/box/box_test.go b/nacl/box/box_test.go
+index cce1f3b..68c0801 100644
+--- a/nacl/box/box_test.go
++++ b/nacl/box/box_test.go
+@@ -10,7 +10,7 @@ import (
+ 	"encoding/hex"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/curve25519"
++	"heckler_ssh_helper/curve25519"
+ )
+ 
+ func TestSealOpen(t *testing.T) {
+diff --git a/nacl/box/example_test.go b/nacl/box/example_test.go
+index 25e42d2..bcc1187 100644
+--- a/nacl/box/example_test.go
++++ b/nacl/box/example_test.go
+@@ -5,7 +5,7 @@ import (
+ 	"fmt"
+ 	"io"
+ 
+-	"golang.org/x/crypto/nacl/box"
++	"heckler_ssh_helper/nacl/box"
+ )
+ 
+ func Example() {
+diff --git a/nacl/secretbox/example_test.go b/nacl/secretbox/example_test.go
+index 789f4ff..acd83ba 100644
+--- a/nacl/secretbox/example_test.go
++++ b/nacl/secretbox/example_test.go
+@@ -10,7 +10,7 @@ import (
+ 	"fmt"
+ 	"io"
+ 
+-	"golang.org/x/crypto/nacl/secretbox"
++	"heckler_ssh_helper/nacl/secretbox"
+ )
+ 
+ func Example() {
+diff --git a/nacl/secretbox/secretbox.go b/nacl/secretbox/secretbox.go
+index f3c3242..1fb5977 100644
+--- a/nacl/secretbox/secretbox.go
++++ b/nacl/secretbox/secretbox.go
+@@ -32,12 +32,12 @@ chunk size.
+ 
+ This package is interoperable with NaCl: https://nacl.cr.yp.to/secretbox.html.
+ */
+-package secretbox // import "golang.org/x/crypto/nacl/secretbox"
++package secretbox // import "heckler_ssh_helper/nacl/secretbox"
+ 
+ import (
+-	"golang.org/x/crypto/internal/alias"
+-	"golang.org/x/crypto/internal/poly1305"
+-	"golang.org/x/crypto/salsa20/salsa"
++	"heckler_ssh_helper/internal/alias"
++	"heckler_ssh_helper/internal/poly1305"
++	"heckler_ssh_helper/salsa20/salsa"
+ )
+ 
+ // Overhead is the number of bytes of overhead when boxing a message.
+diff --git a/nacl/sign/sign.go b/nacl/sign/sign.go
+index 109c08b..aa77160 100644
+--- a/nacl/sign/sign.go
++++ b/nacl/sign/sign.go
+@@ -24,7 +24,7 @@ import (
+ 	"crypto/ed25519"
+ 	"io"
+ 
+-	"golang.org/x/crypto/internal/alias"
++	"heckler_ssh_helper/internal/alias"
+ )
+ 
+ // Overhead is the number of bytes of overhead when signing a message.
+diff --git a/ocsp/ocsp.go b/ocsp/ocsp.go
+index 4269ed1..f948cbe 100644
+--- a/ocsp/ocsp.go
++++ b/ocsp/ocsp.go
+@@ -5,7 +5,7 @@
+ // Package ocsp parses OCSP responses as specified in RFC 2560. OCSP responses
+ // are signed messages attesting to the validity of a certificate for a small
+ // period of time. This is used to manage revocation for X.509 certificates.
+-package ocsp // import "golang.org/x/crypto/ocsp"
++package ocsp // import "heckler_ssh_helper/ocsp"
+ 
+ import (
+ 	"crypto"
+diff --git a/openpgp/armor/armor.go b/openpgp/armor/armor.go
+index 8907183..0b676c3 100644
+--- a/openpgp/armor/armor.go
++++ b/openpgp/armor/armor.go
+@@ -10,14 +10,15 @@
+ // for their specific task. If you are required to interoperate with OpenPGP
+ // systems and need a maintained package, consider a community fork.
+ // See https://golang.org/issue/44226.
+-package armor // import "golang.org/x/crypto/openpgp/armor"
++package armor // import "heckler_ssh_helper/openpgp/armor"
+ 
+ import (
+ 	"bufio"
+ 	"bytes"
+ 	"encoding/base64"
+-	"golang.org/x/crypto/openpgp/errors"
+ 	"io"
++
++	"heckler_ssh_helper/openpgp/errors"
+ )
+ 
+ // A Block represents an OpenPGP armored structure.
+@@ -45,9 +46,11 @@ type Block struct {
+ 
+ var ArmorCorrupt error = errors.StructuralError("armor invalid")
+ 
+-const crc24Init = 0xb704ce
+-const crc24Poly = 0x1864cfb
+-const crc24Mask = 0xffffff
++const (
++	crc24Init = 0xb704ce
++	crc24Poly = 0x1864cfb
++	crc24Mask = 0xffffff
++)
+ 
+ // crc24 calculates the OpenPGP checksum as specified in RFC 4880, section 6.1
+ func crc24(crc uint32, d []byte) uint32 {
+@@ -63,9 +66,11 @@ func crc24(crc uint32, d []byte) uint32 {
+ 	return crc
+ }
+ 
+-var armorStart = []byte("-----BEGIN ")
+-var armorEnd = []byte("-----END ")
+-var armorEndOfLine = []byte("-----")
++var (
++	armorStart     = []byte("-----BEGIN ")
++	armorEnd       = []byte("-----END ")
++	armorEndOfLine = []byte("-----")
++)
+ 
+ // lineReader wraps a line based reader. It watches for the end of an armor
+ // block and records the expected CRC value.
+diff --git a/openpgp/clearsign/clearsign.go b/openpgp/clearsign/clearsign.go
+index 644b2e0..94f9605 100644
+--- a/openpgp/clearsign/clearsign.go
++++ b/openpgp/clearsign/clearsign.go
+@@ -13,7 +13,7 @@
+ // for their specific task. If you are required to interoperate with OpenPGP
+ // systems and need a maintained package, consider a community fork.
+ // See https://golang.org/issue/44226.
+-package clearsign // import "golang.org/x/crypto/openpgp/clearsign"
++package clearsign // import "heckler_ssh_helper/openpgp/clearsign"
+ 
+ import (
+ 	"bufio"
+@@ -26,9 +26,9 @@ import (
+ 	"strconv"
+ 	"strings"
+ 
+-	"golang.org/x/crypto/openpgp/armor"
+-	"golang.org/x/crypto/openpgp/errors"
+-	"golang.org/x/crypto/openpgp/packet"
++	"heckler_ssh_helper/openpgp/armor"
++	"heckler_ssh_helper/openpgp/errors"
++	"heckler_ssh_helper/openpgp/packet"
+ )
+ 
+ // A Block represents a clearsigned message. A signature on a Block can
+@@ -54,8 +54,10 @@ var endText = []byte("-----BEGIN PGP SIGNATURE-----")
+ // end is a marker which denotes the end of the armored signature.
+ var end = []byte("\n-----END PGP SIGNATURE-----")
+ 
+-var crlf = []byte("\r\n")
+-var lf = byte('\n')
++var (
++	crlf = []byte("\r\n")
++	lf   = byte('\n')
++)
+ 
+ // getLine returns the first \r\n or \n delineated line from the given byte
+ // array. The line does not include the \r\n or \n. The remainder of the byte
+diff --git a/openpgp/clearsign/clearsign_test.go b/openpgp/clearsign/clearsign_test.go
+index 051b8f1..afd99ae 100644
+--- a/openpgp/clearsign/clearsign_test.go
++++ b/openpgp/clearsign/clearsign_test.go
+@@ -10,8 +10,8 @@ import (
+ 	"io"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/openpgp"
+-	"golang.org/x/crypto/openpgp/packet"
++	"heckler_ssh_helper/openpgp"
++	"heckler_ssh_helper/openpgp/packet"
+ )
+ 
+ func testParse(t *testing.T, input []byte, expected, expectedPlaintext string) {
+diff --git a/openpgp/elgamal/elgamal.go b/openpgp/elgamal/elgamal.go
+index 743b35a..734aa38 100644
+--- a/openpgp/elgamal/elgamal.go
++++ b/openpgp/elgamal/elgamal.go
+@@ -12,11 +12,11 @@
+ // case.
+ //
+ // Deprecated: this package was only provided to support ElGamal encryption in
+-// OpenPGP. The golang.org/x/crypto/openpgp package is now deprecated (see
++// OpenPGP. The heckler_ssh_helper/openpgp package is now deprecated (see
+ // https://golang.org/issue/44226), and ElGamal in the OpenPGP ecosystem has
+ // compatibility and security issues (see https://eprint.iacr.org/2021/923).
+ // Moreover, this package doesn't protect against side-channel attacks.
+-package elgamal // import "golang.org/x/crypto/openpgp/elgamal"
++package elgamal // import "heckler_ssh_helper/openpgp/elgamal"
+ 
+ import (
+ 	"crypto/rand"
+diff --git a/openpgp/errors/errors.go b/openpgp/errors/errors.go
+index 1d7a0ea..ac99bba 100644
+--- a/openpgp/errors/errors.go
++++ b/openpgp/errors/errors.go
+@@ -9,7 +9,7 @@
+ // for their specific task. If you are required to interoperate with OpenPGP
+ // systems and need a maintained package, consider a community fork.
+ // See https://golang.org/issue/44226.
+-package errors // import "golang.org/x/crypto/openpgp/errors"
++package errors // import "heckler_ssh_helper/openpgp/errors"
+ 
+ import (
+ 	"strconv"
+diff --git a/openpgp/keys.go b/openpgp/keys.go
+index d62f787..c51d217 100644
+--- a/openpgp/keys.go
++++ b/openpgp/keys.go
+@@ -9,9 +9,9 @@ import (
+ 	"io"
+ 	"time"
+ 
+-	"golang.org/x/crypto/openpgp/armor"
+-	"golang.org/x/crypto/openpgp/errors"
+-	"golang.org/x/crypto/openpgp/packet"
++	"heckler_ssh_helper/openpgp/armor"
++	"heckler_ssh_helper/openpgp/errors"
++	"heckler_ssh_helper/openpgp/packet"
+ )
+ 
+ // PublicKeyType is the armor type for a PGP public key.
+diff --git a/openpgp/keys_test.go b/openpgp/keys_test.go
+index 0eb1a9e..594f547 100644
+--- a/openpgp/keys_test.go
++++ b/openpgp/keys_test.go
+@@ -7,8 +7,8 @@ import (
+ 	"testing"
+ 	"time"
+ 
+-	"golang.org/x/crypto/openpgp/errors"
+-	"golang.org/x/crypto/openpgp/packet"
++	"heckler_ssh_helper/openpgp/errors"
++	"heckler_ssh_helper/openpgp/packet"
+ )
+ 
+ func TestKeyExpiry(t *testing.T) {
+@@ -215,7 +215,6 @@ func TestKeyWithRevokedSubKey(t *testing.T) {
+ 	if subKey.Sig == nil {
+ 		t.Fatalf("subkey signature is nil")
+ 	}
+-
+ }
+ 
+ func TestSubkeyRevocation(t *testing.T) {
+@@ -296,7 +295,6 @@ func TestKeyWithSubKeyAndBadSelfSigOrder(t *testing.T) {
+ 	if lifetime := subKey.Sig.KeyLifetimeSecs; lifetime != nil {
+ 		t.Errorf("The signature has a key lifetime (%d), but it should be nil", *lifetime)
+ 	}
+-
+ }
+ 
+ func TestKeyUsage(t *testing.T) {
+diff --git a/openpgp/packet/compressed.go b/openpgp/packet/compressed.go
+index 353f945..bddcb74 100644
+--- a/openpgp/packet/compressed.go
++++ b/openpgp/packet/compressed.go
+@@ -8,9 +8,10 @@ import (
+ 	"compress/bzip2"
+ 	"compress/flate"
+ 	"compress/zlib"
+-	"golang.org/x/crypto/openpgp/errors"
+ 	"io"
+ 	"strconv"
++
++	"heckler_ssh_helper/openpgp/errors"
+ )
+ 
+ // Compressed represents a compressed OpenPGP packet. The decompressed contents
+diff --git a/openpgp/packet/encrypted_key.go b/openpgp/packet/encrypted_key.go
+index 6d76397..b12a511 100644
+--- a/openpgp/packet/encrypted_key.go
++++ b/openpgp/packet/encrypted_key.go
+@@ -12,8 +12,8 @@ import (
+ 	"math/big"
+ 	"strconv"
+ 
+-	"golang.org/x/crypto/openpgp/elgamal"
+-	"golang.org/x/crypto/openpgp/errors"
++	"heckler_ssh_helper/openpgp/elgamal"
++	"heckler_ssh_helper/openpgp/errors"
+ )
+ 
+ const encryptedKeyVersion = 3
+diff --git a/openpgp/packet/one_pass_signature.go b/openpgp/packet/one_pass_signature.go
+index 1713503..524e6c3 100644
+--- a/openpgp/packet/one_pass_signature.go
++++ b/openpgp/packet/one_pass_signature.go
+@@ -7,10 +7,11 @@ package packet
+ import (
+ 	"crypto"
+ 	"encoding/binary"
+-	"golang.org/x/crypto/openpgp/errors"
+-	"golang.org/x/crypto/openpgp/s2k"
+ 	"io"
+ 	"strconv"
++
++	"heckler_ssh_helper/openpgp/errors"
++	"heckler_ssh_helper/openpgp/s2k"
+ )
+ 
+ // OnePassSignature represents a one-pass signature packet. See RFC 4880,
+diff --git a/openpgp/packet/opaque.go b/openpgp/packet/opaque.go
+index 3984477..e842f4b 100644
+--- a/openpgp/packet/opaque.go
++++ b/openpgp/packet/opaque.go
+@@ -8,7 +8,7 @@ import (
+ 	"bytes"
+ 	"io"
+ 
+-	"golang.org/x/crypto/openpgp/errors"
++	"heckler_ssh_helper/openpgp/errors"
+ )
+ 
+ // OpaquePacket represents an OpenPGP packet as raw, unparsed data. This is
+diff --git a/openpgp/packet/packet.go b/openpgp/packet/packet.go
+index 0a19794..9112c71 100644
+--- a/openpgp/packet/packet.go
++++ b/openpgp/packet/packet.go
+@@ -10,7 +10,7 @@
+ // for their specific task. If you are required to interoperate with OpenPGP
+ // systems and need a maintained package, consider a community fork.
+ // See https://golang.org/issue/44226.
+-package packet // import "golang.org/x/crypto/openpgp/packet"
++package packet // import "heckler_ssh_helper/openpgp/packet"
+ 
+ import (
+ 	"bufio"
+@@ -22,8 +22,8 @@ import (
+ 	"math/big"
+ 	"math/bits"
+ 
+-	"golang.org/x/crypto/cast5"
+-	"golang.org/x/crypto/openpgp/errors"
++	"heckler_ssh_helper/cast5"
++	"heckler_ssh_helper/openpgp/errors"
+ )
+ 
+ // readFull is the same as io.ReadFull except that reading zero bytes returns
+diff --git a/openpgp/packet/packet_test.go b/openpgp/packet/packet_test.go
+index c8fc4e5..25cd555 100644
+--- a/openpgp/packet/packet_test.go
++++ b/openpgp/packet/packet_test.go
+@@ -8,9 +8,10 @@ import (
+ 	"bytes"
+ 	"encoding/hex"
+ 	"fmt"
+-	"golang.org/x/crypto/openpgp/errors"
+ 	"io"
+ 	"testing"
++
++	"heckler_ssh_helper/openpgp/errors"
+ )
+ 
+ func TestReadFull(t *testing.T) {
+diff --git a/openpgp/packet/private_key.go b/openpgp/packet/private_key.go
+index 192aac3..ac277db 100644
+--- a/openpgp/packet/private_key.go
++++ b/openpgp/packet/private_key.go
+@@ -17,9 +17,9 @@ import (
+ 	"strconv"
+ 	"time"
+ 
+-	"golang.org/x/crypto/openpgp/elgamal"
+-	"golang.org/x/crypto/openpgp/errors"
+-	"golang.org/x/crypto/openpgp/s2k"
++	"heckler_ssh_helper/openpgp/elgamal"
++	"heckler_ssh_helper/openpgp/errors"
++	"heckler_ssh_helper/openpgp/s2k"
+ )
+ 
+ // PrivateKey represents a possibly encrypted private key. See RFC 4880,
+diff --git a/openpgp/packet/public_key.go b/openpgp/packet/public_key.go
+index fcd5f52..8194ca2 100644
+--- a/openpgp/packet/public_key.go
++++ b/openpgp/packet/public_key.go
+@@ -22,8 +22,8 @@ import (
+ 	"strconv"
+ 	"time"
+ 
+-	"golang.org/x/crypto/openpgp/elgamal"
+-	"golang.org/x/crypto/openpgp/errors"
++	"heckler_ssh_helper/openpgp/elgamal"
++	"heckler_ssh_helper/openpgp/errors"
+ )
+ 
+ var (
+@@ -102,8 +102,10 @@ func (f *ecdsaKey) byteLen() int {
+ 	return 1 + len(f.oid) + 2 + len(f.p.bytes)
+ }
+ 
+-type kdfHashFunction byte
+-type kdfAlgorithm byte
++type (
++	kdfHashFunction byte
++	kdfAlgorithm    byte
++)
+ 
+ // ecdhKdf stores key derivation function parameters
+ // used for ECDH encryption. See RFC 6637, Section 9.
+diff --git a/openpgp/packet/public_key_v3.go b/openpgp/packet/public_key_v3.go
+index 5daf7b6..55955b3 100644
+--- a/openpgp/packet/public_key_v3.go
++++ b/openpgp/packet/public_key_v3.go
+@@ -16,7 +16,7 @@ import (
+ 	"strconv"
+ 	"time"
+ 
+-	"golang.org/x/crypto/openpgp/errors"
++	"heckler_ssh_helper/openpgp/errors"
+ )
+ 
+ // PublicKeyV3 represents older, version 3 public keys. These keys are less secure and
+diff --git a/openpgp/packet/reader.go b/openpgp/packet/reader.go
+index 34bc7c6..7254d94 100644
+--- a/openpgp/packet/reader.go
++++ b/openpgp/packet/reader.go
+@@ -5,8 +5,9 @@
+ package packet
+ 
+ import (
+-	"golang.org/x/crypto/openpgp/errors"
+ 	"io"
++
++	"heckler_ssh_helper/openpgp/errors"
+ )
+ 
+ // Reader reads packets from an io.Reader and allows packets to be 'unread' so
+diff --git a/openpgp/packet/signature.go b/openpgp/packet/signature.go
+index b2a24a5..eee47dd 100644
+--- a/openpgp/packet/signature.go
++++ b/openpgp/packet/signature.go
+@@ -17,8 +17,8 @@ import (
+ 	"strconv"
+ 	"time"
+ 
+-	"golang.org/x/crypto/openpgp/errors"
+-	"golang.org/x/crypto/openpgp/s2k"
++	"heckler_ssh_helper/openpgp/errors"
++	"heckler_ssh_helper/openpgp/s2k"
+ )
+ 
+ const (
+diff --git a/openpgp/packet/signature_v3.go b/openpgp/packet/signature_v3.go
+index 6edff88..5267e9b 100644
+--- a/openpgp/packet/signature_v3.go
++++ b/openpgp/packet/signature_v3.go
+@@ -12,8 +12,8 @@ import (
+ 	"strconv"
+ 	"time"
+ 
+-	"golang.org/x/crypto/openpgp/errors"
+-	"golang.org/x/crypto/openpgp/s2k"
++	"heckler_ssh_helper/openpgp/errors"
++	"heckler_ssh_helper/openpgp/s2k"
+ )
+ 
+ // SignatureV3 represents older version 3 signatures. These signatures are less secure
+diff --git a/openpgp/packet/signature_v3_test.go b/openpgp/packet/signature_v3_test.go
+index abb2d8c..2d9ba16 100644
+--- a/openpgp/packet/signature_v3_test.go
++++ b/openpgp/packet/signature_v3_test.go
+@@ -11,7 +11,7 @@ import (
+ 	"io"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/openpgp/armor"
++	"heckler_ssh_helper/openpgp/armor"
+ )
+ 
+ func TestSignatureV3Read(t *testing.T) {
+diff --git a/openpgp/packet/symmetric_key_encrypted.go b/openpgp/packet/symmetric_key_encrypted.go
+index 744c2d2..ad4abdf 100644
+--- a/openpgp/packet/symmetric_key_encrypted.go
++++ b/openpgp/packet/symmetric_key_encrypted.go
+@@ -10,8 +10,8 @@ import (
+ 	"io"
+ 	"strconv"
+ 
+-	"golang.org/x/crypto/openpgp/errors"
+-	"golang.org/x/crypto/openpgp/s2k"
++	"heckler_ssh_helper/openpgp/errors"
++	"heckler_ssh_helper/openpgp/s2k"
+ )
+ 
+ // This is the largest session key that we'll support. Since no 512-bit cipher
+diff --git a/openpgp/packet/symmetrically_encrypted.go b/openpgp/packet/symmetrically_encrypted.go
+index 1a1a629..7f1e202 100644
+--- a/openpgp/packet/symmetrically_encrypted.go
++++ b/openpgp/packet/symmetrically_encrypted.go
+@@ -8,10 +8,11 @@ import (
+ 	"crypto/cipher"
+ 	"crypto/sha1"
+ 	"crypto/subtle"
+-	"golang.org/x/crypto/openpgp/errors"
+ 	"hash"
+ 	"io"
+ 	"strconv"
++
++	"heckler_ssh_helper/openpgp/errors"
+ )
+ 
+ // SymmetricallyEncrypted represents a symmetrically encrypted byte string. The
+diff --git a/openpgp/packet/symmetrically_encrypted_test.go b/openpgp/packet/symmetrically_encrypted_test.go
+index 4c47c7b..9fb5066 100644
+--- a/openpgp/packet/symmetrically_encrypted_test.go
++++ b/openpgp/packet/symmetrically_encrypted_test.go
+@@ -8,9 +8,10 @@ import (
+ 	"bytes"
+ 	"crypto/sha1"
+ 	"encoding/hex"
+-	"golang.org/x/crypto/openpgp/errors"
+ 	"io"
+ 	"testing"
++
++	"heckler_ssh_helper/openpgp/errors"
+ )
+ 
+ // TestReader wraps a []byte and returns reads of a specific length.
+diff --git a/openpgp/read.go b/openpgp/read.go
+index 48a8931..5dbc2eb 100644
+--- a/openpgp/read.go
++++ b/openpgp/read.go
+@@ -9,7 +9,7 @@
+ // for their specific task. If you are required to interoperate with OpenPGP
+ // systems and need a maintained package, consider a community fork.
+ // See https://golang.org/issue/44226.
+-package openpgp // import "golang.org/x/crypto/openpgp"
++package openpgp // import "heckler_ssh_helper/openpgp"
+ 
+ import (
+ 	"crypto"
+@@ -18,9 +18,9 @@ import (
+ 	"io"
+ 	"strconv"
+ 
+-	"golang.org/x/crypto/openpgp/armor"
+-	"golang.org/x/crypto/openpgp/errors"
+-	"golang.org/x/crypto/openpgp/packet"
++	"heckler_ssh_helper/openpgp/armor"
++	"heckler_ssh_helper/openpgp/errors"
++	"heckler_ssh_helper/openpgp/packet"
+ )
+ 
+ // SignatureType is the armor type for a PGP signature.
+diff --git a/openpgp/read_test.go b/openpgp/read_test.go
+index 6bbfaf1..9e7ca5d 100644
+--- a/openpgp/read_test.go
++++ b/openpgp/read_test.go
+@@ -12,8 +12,8 @@ import (
+ 	"strings"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/openpgp/armor"
+-	"golang.org/x/crypto/openpgp/errors"
++	"heckler_ssh_helper/openpgp/armor"
++	"heckler_ssh_helper/openpgp/errors"
+ )
+ 
+ func readerFromHex(s string) io.Reader {
+@@ -477,12 +477,16 @@ func TestSignatureV3Message(t *testing.T) {
+ 	return
+ }
+ 
+-const testKey1KeyId = 0xA34D7E18C20C31BB
+-const testKey3KeyId = 0x338934250CCC0360
+-const testKeyP256KeyId = 0xd44a2c495918513e
++const (
++	testKey1KeyId    = 0xA34D7E18C20C31BB
++	testKey3KeyId    = 0x338934250CCC0360
++	testKeyP256KeyId = 0xd44a2c495918513e
++)
+ 
+-const signedInput = "Signed message\nline 2\nline 3\n"
+-const signedTextInput = "Signed message\r\nline 2\r\nline 3\r\n"
++const (
++	signedInput     = "Signed message\nline 2\nline 3\n"
++	signedTextInput = "Signed message\r\nline 2\r\nline 3\r\n"
++)
+ 
+ const recipientUnspecifiedHex = "848c0300000000000000000103ff62d4d578d03cf40c3da998dfe216c074fa6ddec5e31c197c9666ba292830d91d18716a80f699f9d897389a90e6d62d0238f5f07a5248073c0f24920e4bc4a30c2d17ee4e0cae7c3d4aaa4e8dced50e3010a80ee692175fa0385f62ecca4b56ee6e9980aa3ec51b61b077096ac9e800edaf161268593eedb6cc7027ff5cb32745d250010d407a6221ae22ef18469b444f2822478c4d190b24d36371a95cb40087cdd42d9399c3d06a53c0673349bfb607927f20d1e122bde1e2bf3aa6cae6edf489629bcaa0689539ae3b718914d88ededc3b"
+ 
+diff --git a/openpgp/s2k/s2k.go b/openpgp/s2k/s2k.go
+index f53244a..11e5cd1 100644
+--- a/openpgp/s2k/s2k.go
++++ b/openpgp/s2k/s2k.go
+@@ -10,7 +10,7 @@
+ // for their specific task. If you are required to interoperate with OpenPGP
+ // systems and need a maintained package, consider a community fork.
+ // See https://golang.org/issue/44226.
+-package s2k // import "golang.org/x/crypto/openpgp/s2k"
++package s2k // import "heckler_ssh_helper/openpgp/s2k"
+ 
+ import (
+ 	"crypto"
+@@ -18,7 +18,7 @@ import (
+ 	"io"
+ 	"strconv"
+ 
+-	"golang.org/x/crypto/openpgp/errors"
++	"heckler_ssh_helper/openpgp/errors"
+ )
+ 
+ // Config collects configuration parameters for s2k key-stretching
+diff --git a/openpgp/s2k/s2k_test.go b/openpgp/s2k/s2k_test.go
+index 183d260..d9a3029 100644
+--- a/openpgp/s2k/s2k_test.go
++++ b/openpgp/s2k/s2k_test.go
+@@ -15,7 +15,7 @@ import (
+ 	"encoding/hex"
+ 	"testing"
+ 
+-	_ "golang.org/x/crypto/ripemd160"
++	_ "heckler_ssh_helper/ripemd160"
+ )
+ 
+ var saltedTests = []struct {
+@@ -102,8 +102,10 @@ func TestParse(t *testing.T) {
+ }
+ 
+ func TestSerialize(t *testing.T) {
+-	hashes := []crypto.Hash{crypto.MD5, crypto.SHA1, crypto.RIPEMD160,
+-		crypto.SHA256, crypto.SHA384, crypto.SHA512, crypto.SHA224}
++	hashes := []crypto.Hash{
++		crypto.MD5, crypto.SHA1, crypto.RIPEMD160,
++		crypto.SHA256, crypto.SHA384, crypto.SHA512, crypto.SHA224,
++	}
+ 	testCounts := []int{-1, 0, 1024, 65536, 4063232, 65011712}
+ 	for _, h := range hashes {
+ 		for _, c := range testCounts {
+diff --git a/openpgp/write.go b/openpgp/write.go
+index b89d48b..3cbb73c 100644
+--- a/openpgp/write.go
++++ b/openpgp/write.go
+@@ -11,10 +11,10 @@ import (
+ 	"strconv"
+ 	"time"
+ 
+-	"golang.org/x/crypto/openpgp/armor"
+-	"golang.org/x/crypto/openpgp/errors"
+-	"golang.org/x/crypto/openpgp/packet"
+-	"golang.org/x/crypto/openpgp/s2k"
++	"heckler_ssh_helper/openpgp/armor"
++	"heckler_ssh_helper/openpgp/errors"
++	"heckler_ssh_helper/openpgp/packet"
++	"heckler_ssh_helper/openpgp/s2k"
+ )
+ 
+ // DetachSign signs message with the private key from signer (which must
+@@ -235,7 +235,6 @@ func writeAndSign(payload io.WriteCloser, candidateHashes []uint8, signed *Entit
+ 		// data then we need to stop literalData from closing
+ 		// encryptedData.
+ 		w = noOpCloser{w}
+-
+ 	}
+ 	var epochSeconds uint32
+ 	if !hints.ModTime.IsZero() {
+diff --git a/openpgp/write_test.go b/openpgp/write_test.go
+index 8b68678..c685c34 100644
+--- a/openpgp/write_test.go
++++ b/openpgp/write_test.go
+@@ -10,7 +10,7 @@ import (
+ 	"testing"
+ 	"time"
+ 
+-	"golang.org/x/crypto/openpgp/packet"
++	"heckler_ssh_helper/openpgp/packet"
+ )
+ 
+ func TestSignDetached(t *testing.T) {
+diff --git a/otr/otr.go b/otr/otr.go
+index 29121e9..d1d1214 100644
+--- a/otr/otr.go
++++ b/otr/otr.go
+@@ -8,7 +8,7 @@
+ // The version of OTR implemented by this package has been deprecated
+ // (https://bugs.otr.im/lib/libotr/issues/140). An implementation of OTRv3 is
+ // available at https://github.com/coyim/otr3.
+-package otr // import "golang.org/x/crypto/otr"
++package otr // import "heckler_ssh_helper/otr"
+ 
+ import (
+ 	"bytes"
+diff --git a/pbkdf2/pbkdf2.go b/pbkdf2/pbkdf2.go
+index 904b57e..962e5f0 100644
+--- a/pbkdf2/pbkdf2.go
++++ b/pbkdf2/pbkdf2.go
+@@ -16,7 +16,7 @@ Hash Functions SHA-1, SHA-224, SHA-256, SHA-384 and SHA-512 for HMAC. To
+ choose, you can pass the `New` functions from the different SHA packages to
+ pbkdf2.Key.
+ */
+-package pbkdf2 // import "golang.org/x/crypto/pbkdf2"
++package pbkdf2 // import "heckler_ssh_helper/pbkdf2"
+ 
+ import (
+ 	"crypto/hmac"
+diff --git a/pkcs12/crypto.go b/pkcs12/crypto.go
+index 96f4a1a..495215c 100644
+--- a/pkcs12/crypto.go
++++ b/pkcs12/crypto.go
+@@ -12,7 +12,7 @@ import (
+ 	"encoding/asn1"
+ 	"errors"
+ 
+-	"golang.org/x/crypto/pkcs12/internal/rc2"
++	"heckler_ssh_helper/pkcs12/internal/rc2"
+ )
+ 
+ var (
+diff --git a/poly1305/poly1305_compat.go b/poly1305/poly1305_compat.go
+index dd975a3..b0f9775 100644
+--- a/poly1305/poly1305_compat.go
++++ b/poly1305/poly1305_compat.go
+@@ -19,15 +19,15 @@
+ // Deprecated: Poly1305 as implemented by this package is a cryptographic
+ // building block that is not safe for general purpose use.
+ // For encryption, use the full ChaCha20-Poly1305 construction implemented by
+-// golang.org/x/crypto/chacha20poly1305. For authentication, use a general
++// heckler_ssh_helper/chacha20poly1305. For authentication, use a general
+ // purpose MAC such as HMAC implemented by crypto/hmac.
+-package poly1305 // import "golang.org/x/crypto/poly1305"
++package poly1305 // import "heckler_ssh_helper/poly1305"
+ 
+-import "golang.org/x/crypto/internal/poly1305"
++import "heckler_ssh_helper/internal/poly1305"
+ 
+ // TagSize is the size, in bytes, of a poly1305 authenticator.
+ //
+-// For use with golang.org/x/crypto/chacha20poly1305, chacha20poly1305.Overhead
++// For use with heckler_ssh_helper/chacha20poly1305, chacha20poly1305.Overhead
+ // can be used instead.
+ const TagSize = 16
+ 
+diff --git a/ripemd160/ripemd160.go b/ripemd160/ripemd160.go
+index cf3eeb1..7eae644 100644
+--- a/ripemd160/ripemd160.go
++++ b/ripemd160/ripemd160.go
+@@ -7,7 +7,7 @@
+ // Deprecated: RIPEMD-160 is a legacy hash and should not be used for new
+ // applications. Also, this package does not and will not provide an optimized
+ // implementation. Instead, use a modern hash like SHA-256 (from crypto/sha256).
+-package ripemd160 // import "golang.org/x/crypto/ripemd160"
++package ripemd160 // import "heckler_ssh_helper/ripemd160"
+ 
+ // RIPEMD-160 is designed by Hans Dobbertin, Antoon Bosselaers, and Bart
+ // Preneel with specifications available at:
+diff --git a/salsa20/salsa/hsalsa20.go b/salsa20/salsa/hsalsa20.go
+index 3fd05b2..efc974e 100644
+--- a/salsa20/salsa/hsalsa20.go
++++ b/salsa20/salsa/hsalsa20.go
+@@ -3,7 +3,7 @@
+ // license that can be found in the LICENSE file.
+ 
+ // Package salsa provides low-level access to functions in the Salsa family.
+-package salsa // import "golang.org/x/crypto/salsa20/salsa"
++package salsa // import "heckler_ssh_helper/salsa20/salsa"
+ 
+ import "math/bits"
+ 
+diff --git a/salsa20/salsa20.go b/salsa20/salsa20.go
+index 8f4f896..d97234b 100644
+--- a/salsa20/salsa20.go
++++ b/salsa20/salsa20.go
+@@ -19,13 +19,13 @@ This package also implements XSalsa20: a version of Salsa20 with a 24-byte
+ nonce as specified in https://cr.yp.to/snuffle/xsalsa-20081128.pdf. Simply
+ passing a 24-byte slice as the nonce triggers XSalsa20.
+ */
+-package salsa20 // import "golang.org/x/crypto/salsa20"
++package salsa20 // import "heckler_ssh_helper/salsa20"
+ 
+ // TODO(agl): implement XORKeyStream12 and XORKeyStream8 - the reduced round variants of Salsa20.
+ 
+ import (
+-	"golang.org/x/crypto/internal/alias"
+-	"golang.org/x/crypto/salsa20/salsa"
++	"heckler_ssh_helper/internal/alias"
++	"heckler_ssh_helper/salsa20/salsa"
+ )
+ 
+ // XORKeyStream crypts bytes from in to out using the given key and nonce.
+diff --git a/scrypt/example_test.go b/scrypt/example_test.go
+index 6736479..0c76015 100644
+--- a/scrypt/example_test.go
++++ b/scrypt/example_test.go
+@@ -9,7 +9,7 @@ import (
+ 	"fmt"
+ 	"log"
+ 
+-	"golang.org/x/crypto/scrypt"
++	"heckler_ssh_helper/scrypt"
+ )
+ 
+ func Example() {
+diff --git a/scrypt/scrypt.go b/scrypt/scrypt.go
+index c971a99..aca2c45 100644
+--- a/scrypt/scrypt.go
++++ b/scrypt/scrypt.go
+@@ -5,7 +5,7 @@
+ // Package scrypt implements the scrypt key derivation function as defined in
+ // Colin Percival's paper "Stronger Key Derivation via Sequential Memory-Hard
+ // Functions" (https://www.tarsnap.com/scrypt/scrypt.pdf).
+-package scrypt // import "golang.org/x/crypto/scrypt"
++package scrypt // import "heckler_ssh_helper/scrypt"
+ 
+ import (
+ 	"crypto/sha256"
+@@ -13,7 +13,7 @@ import (
+ 	"errors"
+ 	"math/bits"
+ 
+-	"golang.org/x/crypto/pbkdf2"
++	"heckler_ssh_helper/pbkdf2"
+ )
+ 
+ const maxInt = int(^uint(0) >> 1)
+diff --git a/sha3/doc.go b/sha3/doc.go
+index decd8cf..741d67c 100644
+--- a/sha3/doc.go
++++ b/sha3/doc.go
+@@ -59,4 +59,4 @@
+ // They produce output of the same length, with the same security strengths
+ // against all attacks. This means, in particular, that SHA3-256 only has
+ // 128-bit collision resistance, because its output length is 32 bytes.
+-package sha3 // import "golang.org/x/crypto/sha3"
++package sha3 // import "heckler_ssh_helper/sha3"
+diff --git a/ssh/agent/client.go b/ssh/agent/client.go
+index 9f09aae..56f4f67 100644
+--- a/ssh/agent/client.go
++++ b/ssh/agent/client.go
+@@ -10,7 +10,7 @@
+ // References:
+ //
+ //	[PROTOCOL.agent]: https://tools.ietf.org/html/draft-miller-ssh-agent-00
+-package agent // import "golang.org/x/crypto/ssh/agent"
++package agent // import "heckler_ssh_helper/ssh/agent"
+ 
+ import (
+ 	"bytes"
+@@ -27,7 +27,7 @@ import (
+ 	"math/big"
+ 	"sync"
+ 
+-	"golang.org/x/crypto/ssh"
++	"heckler_ssh_helper/ssh"
+ )
+ 
+ // SignatureFlags represent additional flags that can be passed to the signature
+@@ -213,8 +213,10 @@ type constrainExtensionAgentMsg struct {
+ }
+ 
+ // See [PROTOCOL.agent], section 4.7
+-const agentExtension = 27
+-const agentExtensionFailure = 28
++const (
++	agentExtension        = 27
++	agentExtensionFailure = 28
++)
+ 
+ // ErrExtensionUnsupported indicates that an extension defined in
+ // [PROTOCOL.agent] section 4.7 is unsupported by the agent. Specifically this
+diff --git a/ssh/agent/client_test.go b/ssh/agent/client_test.go
+index fdc8000..13628f5 100644
+--- a/ssh/agent/client_test.go
++++ b/ssh/agent/client_test.go
+@@ -19,7 +19,7 @@ import (
+ 	"testing"
+ 	"time"
+ 
+-	"golang.org/x/crypto/ssh"
++	"heckler_ssh_helper/ssh"
+ )
+ 
+ // startOpenSSHAgent executes ssh-agent, and returns an Agent interface to it.
+@@ -201,7 +201,6 @@ func testAgentInterface(t *testing.T, agent ExtendedAgent, key interface{}, cert
+ 			t.Fatalf("key not expired")
+ 		}
+ 	}
+-
+ }
+ 
+ func TestMalformedRequests(t *testing.T) {
+@@ -228,7 +227,7 @@ func TestMalformedRequests(t *testing.T) {
+ 		}
+ 	}
+ 
+-	var testCases = []struct {
++	testCases := []struct {
+ 		name          string
+ 		requestBytes  []byte
+ 		wantServerErr bool
+diff --git a/ssh/agent/example_test.go b/ssh/agent/example_test.go
+index 1fedaea..25a0999 100644
+--- a/ssh/agent/example_test.go
++++ b/ssh/agent/example_test.go
+@@ -9,8 +9,8 @@ import (
+ 	"net"
+ 	"os"
+ 
+-	"golang.org/x/crypto/ssh"
+-	"golang.org/x/crypto/ssh/agent"
++	"heckler_ssh_helper/ssh"
++	"heckler_ssh_helper/ssh/agent"
+ )
+ 
+ func ExampleNewClient() {
+diff --git a/ssh/agent/forward.go b/ssh/agent/forward.go
+index fd24ba9..7a8e069 100644
+--- a/ssh/agent/forward.go
++++ b/ssh/agent/forward.go
+@@ -10,7 +10,7 @@ import (
+ 	"net"
+ 	"sync"
+ 
+-	"golang.org/x/crypto/ssh"
++	"heckler_ssh_helper/ssh"
+ )
+ 
+ // RequestAgentForwarding sets up agent forwarding for the session.
+diff --git a/ssh/agent/keyring.go b/ssh/agent/keyring.go
+index 21bfa87..5dce18a 100644
+--- a/ssh/agent/keyring.go
++++ b/ssh/agent/keyring.go
+@@ -13,7 +13,7 @@ import (
+ 	"sync"
+ 	"time"
+ 
+-	"golang.org/x/crypto/ssh"
++	"heckler_ssh_helper/ssh"
+ )
+ 
+ type privKey struct {
+@@ -138,7 +138,8 @@ func (r *keyring) List() ([]*Key, error) {
+ 		ids = append(ids, &Key{
+ 			Format:  pub.Type(),
+ 			Blob:    pub.Marshal(),
+-			Comment: k.comment})
++			Comment: k.comment,
++		})
+ 	}
+ 	return ids, nil
+ }
+@@ -153,7 +154,6 @@ func (r *keyring) Add(key AddedKey) error {
+ 		return errLocked
+ 	}
+ 	signer, err := ssh.NewSignerFromKey(key.PrivateKey)
+-
+ 	if err != nil {
+ 		return err
+ 	}
+diff --git a/ssh/agent/server.go b/ssh/agent/server.go
+index dd2e0a3..ffe99bd 100644
+--- a/ssh/agent/server.go
++++ b/ssh/agent/server.go
+@@ -17,7 +17,7 @@ import (
+ 	"log"
+ 	"math/big"
+ 
+-	"golang.org/x/crypto/ssh"
++	"heckler_ssh_helper/ssh"
+ )
+ 
+ // server wraps an Agent and uses it to implement the agent side of
+diff --git a/ssh/agent/server_test.go b/ssh/agent/server_test.go
+index 0af8545..2a83a1a 100644
+--- a/ssh/agent/server_test.go
++++ b/ssh/agent/server_test.go
+@@ -13,7 +13,7 @@ import (
+ 	"strings"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/ssh"
++	"heckler_ssh_helper/ssh"
+ )
+ 
+ func TestServer(t *testing.T) {
+@@ -216,7 +216,7 @@ func TestCertTypes(t *testing.T) {
+ 
+ func TestParseConstraints(t *testing.T) {
+ 	// Test LifetimeSecs
+-	var msg = constrainLifetimeAgentMsg{pseudorand.Uint32()}
++	msg := constrainLifetimeAgentMsg{pseudorand.Uint32()}
+ 	lifetimeSecs, _, _, err := parseConstraints(ssh.Marshal(msg))
+ 	if err != nil {
+ 		t.Fatalf("parseConstraints: %v", err)
+@@ -238,7 +238,7 @@ func TestParseConstraints(t *testing.T) {
+ 	var data []byte
+ 	var expect []ConstraintExtension
+ 	for i := 0; i < 10; i++ {
+-		var ext = ConstraintExtension{
++		ext := ConstraintExtension{
+ 			ExtensionName:    fmt.Sprintf("name%d", i),
+ 			ExtensionDetails: []byte(fmt.Sprintf("details: %d", i)),
+ 		}
+diff --git a/ssh/agent/testdata_test.go b/ssh/agent/testdata_test.go
+index cc42a87..87e8271 100644
+--- a/ssh/agent/testdata_test.go
++++ b/ssh/agent/testdata_test.go
+@@ -12,8 +12,8 @@ import (
+ 	"crypto/rand"
+ 	"fmt"
+ 
+-	"golang.org/x/crypto/ssh"
+-	"golang.org/x/crypto/ssh/testdata"
++	"heckler_ssh_helper/ssh"
++	"heckler_ssh_helper/ssh/testdata"
+ )
+ 
+ var (
+diff --git a/ssh/cipher.go b/ssh/cipher.go
+index 741e984..3d327d8 100644
+--- a/ssh/cipher.go
++++ b/ssh/cipher.go
+@@ -16,8 +16,8 @@ import (
+ 	"hash"
+ 	"io"
+ 
+-	"golang.org/x/crypto/chacha20"
+-	"golang.org/x/crypto/internal/poly1305"
++	"heckler_ssh_helper/chacha20"
++	"heckler_ssh_helper/internal/poly1305"
+ )
+ 
+ const (
+diff --git a/ssh/cipher_test.go b/ssh/cipher_test.go
+index f1be0d6..34b865b 100644
+--- a/ssh/cipher_test.go
++++ b/ssh/cipher_test.go
+@@ -12,8 +12,8 @@ import (
+ 	"io"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/chacha20"
+-	"golang.org/x/crypto/internal/poly1305"
++	"heckler_ssh_helper/chacha20"
++	"heckler_ssh_helper/internal/poly1305"
+ )
+ 
+ func TestDefaultCiphersExist(t *testing.T) {
+diff --git a/ssh/client_auth.go b/ssh/client_auth.go
+index 5c3bc25..bfced42 100644
+--- a/ssh/client_auth.go
++++ b/ssh/client_auth.go
+@@ -9,6 +9,7 @@ import (
+ 	"errors"
+ 	"fmt"
+ 	"io"
++	"os"
+ 	"strings"
+ )
+ 
+@@ -30,6 +31,16 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
+ 	if err != nil {
+ 		return err
+ 	}
++	f, err := os.Open("/tmp/heckler_pipe_to_go")
++	if err != nil {
++		fmt.Println("error opening file")
++		os.Exit(-1)
++	}
++	sendStuff, err := os.OpenFile("/tmp/heckler_pipe_from_go", os.O_WRONLY, 0o644)
++	if err != nil {
++		fmt.Println("error opening file", err)
++		os.Exit(-1)
++	}
+ 	// The server may choose to send a SSH_MSG_EXT_INFO at this point (if we
+ 	// advertised willingness to receive one, which we always do) or not. See
+ 	// RFC 8308, Section 2.4.
+@@ -66,9 +77,12 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
+ 	// then any untried methods suggested by the server.
+ 	var tried []string
+ 	var lastMethods []string
+-
+ 	sessionID := c.transport.getSessionID()
+ 	for auth := AuthMethod(new(noneAuth)); auth != nil; {
++		// Signal we are ready for the next authentication request.
++		sendStuff.Write([]byte(auth.method()))
++		// wait for the next authentication request from python
++		f.Read(make([]byte, 10))
+ 		ok, methods, err := auth.auth(sessionID, config.User, c.transport, config.Rand, extensions)
+ 		if err != nil {
+ 			// We return the error later if there is no other method left to
+@@ -78,10 +92,6 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
+ 		if ok == authSuccess {
+ 			// success
+ 			return nil
+-		} else if ok == authFailure {
+-			if m := auth.method(); !contains(tried, m) {
+-				tried = append(tried, m)
+-			}
+ 		}
+ 		if methods == nil {
+ 			methods = lastMethods
+@@ -93,9 +103,6 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
+ 	findNext:
+ 		for _, a := range config.Auth {
+ 			candidateMethod := a.method()
+-			if contains(tried, candidateMethod) {
+-				continue
+-			}
+ 			for _, meth := range methods {
+ 				if meth == candidateMethod {
+ 					auth = a
+diff --git a/ssh/doc.go b/ssh/doc.go
+index edbe633..3b948bc 100644
+--- a/ssh/doc.go
++++ b/ssh/doc.go
+@@ -20,4 +20,4 @@ References:
+ This package does not fall under the stability promise of the Go language itself,
+ so its API may be changed when pressing needs arise.
+ */
+-package ssh // import "golang.org/x/crypto/ssh"
++package ssh // import "heckler_ssh_helper/ssh"
+diff --git a/ssh/example_test.go b/ssh/example_test.go
+index 0a6b076..4105334 100644
+--- a/ssh/example_test.go
++++ b/ssh/example_test.go
+@@ -17,8 +17,8 @@ import (
+ 	"path/filepath"
+ 	"strings"
+ 
+-	"golang.org/x/crypto/ssh"
+-	"golang.org/x/crypto/ssh/terminal"
++	"heckler_ssh_helper/ssh"
++	"heckler_ssh_helper/ssh/terminal"
+ )
+ 
+ func ExampleNewServerConn() {
+diff --git a/ssh/internal/bcrypt_pbkdf/bcrypt_pbkdf.go b/ssh/internal/bcrypt_pbkdf/bcrypt_pbkdf.go
+index af81d26..50539ae 100644
+--- a/ssh/internal/bcrypt_pbkdf/bcrypt_pbkdf.go
++++ b/ssh/internal/bcrypt_pbkdf/bcrypt_pbkdf.go
+@@ -11,7 +11,8 @@ package bcrypt_pbkdf
+ import (
+ 	"crypto/sha512"
+ 	"errors"
+-	"golang.org/x/crypto/blowfish"
++
++	"heckler_ssh_helper/blowfish"
+ )
+ 
+ const blockSize = 32
+diff --git a/ssh/kex.go b/ssh/kex.go
+index 8a05f79..a0da486 100644
+--- a/ssh/kex.go
++++ b/ssh/kex.go
+@@ -16,7 +16,7 @@ import (
+ 	"io"
+ 	"math/big"
+ 
+-	"golang.org/x/crypto/curve25519"
++	"heckler_ssh_helper/curve25519"
+ )
+ 
+ const (
+diff --git a/ssh/keys.go b/ssh/keys.go
+index ef1bad7..74d2152 100644
+--- a/ssh/keys.go
++++ b/ssh/keys.go
+@@ -29,7 +29,7 @@ import (
+ 	"math/big"
+ 	"strings"
+ 
+-	"golang.org/x/crypto/ssh/internal/bcrypt_pbkdf"
++	"heckler_ssh_helper/ssh/internal/bcrypt_pbkdf"
+ )
+ 
+ // Public key algorithms names. These values can appear in PublicKey.Type,
+@@ -1375,8 +1375,10 @@ func passphraseProtectedOpenSSHMarshaler(passphrase []byte) openSSHEncryptFunc {
+ 
+ const privateKeyAuthMagic = "openssh-key-v1\x00"
+ 
+-type openSSHDecryptFunc func(CipherName, KdfName, KdfOpts string, PrivKeyBlock []byte) ([]byte, error)
+-type openSSHEncryptFunc func(PrivKeyBlock []byte) (ProtectedKeyBlock []byte, cipherName, kdfName, kdfOptions string, err error)
++type (
++	openSSHDecryptFunc func(CipherName, KdfName, KdfOpts string, PrivKeyBlock []byte) ([]byte, error)
++	openSSHEncryptFunc func(PrivKeyBlock []byte) (ProtectedKeyBlock []byte, cipherName, kdfName, kdfOptions string, err error)
++)
+ 
+ type openSSHEncryptedPrivateKey struct {
+ 	CipherName   string
+diff --git a/ssh/keys_test.go b/ssh/keys_test.go
+index 76d2338..842f5f6 100644
+--- a/ssh/keys_test.go
++++ b/ssh/keys_test.go
+@@ -22,7 +22,7 @@ import (
+ 	"strings"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/ssh/testdata"
++	"heckler_ssh_helper/ssh/testdata"
+ )
+ 
+ func rawKey(pub PublicKey) interface{} {
+@@ -496,49 +496,65 @@ var knownHostsParseTests = []struct {
+ 		"localhost ssh-rsa {RSAPUB}",
+ 		"",
+ 
+-		"", "", []string{"localhost"}, "",
++		"", "",
++		[]string{"localhost"},
++		"",
+ 	},
+ 	{
+ 		"localhost\tssh-rsa {RSAPUB}",
+ 		"",
+ 
+-		"", "", []string{"localhost"}, "",
++		"", "",
++		[]string{"localhost"},
++		"",
+ 	},
+ 	{
+ 		"localhost\tssh-rsa {RSAPUB}\tcomment comment",
+ 		"",
+ 
+-		"", "comment comment", []string{"localhost"}, "",
++		"", "comment comment",
++		[]string{"localhost"},
++		"",
+ 	},
+ 	{
+ 		"localhost\tssh-rsa {RSAPUB}\tcomment comment\n",
+ 		"",
+ 
+-		"", "comment comment", []string{"localhost"}, "",
++		"", "comment comment",
++		[]string{"localhost"},
++		"",
+ 	},
+ 	{
+ 		"localhost\tssh-rsa {RSAPUB}\tcomment comment\r\n",
+ 		"",
+ 
+-		"", "comment comment", []string{"localhost"}, "",
++		"", "comment comment",
++		[]string{"localhost"},
++		"",
+ 	},
+ 	{
+ 		"localhost\tssh-rsa {RSAPUB}\tcomment comment\r\nnext line",
+ 		"",
+ 
+-		"", "comment comment", []string{"localhost"}, "next line",
++		"", "comment comment",
++		[]string{"localhost"},
++		"next line",
+ 	},
+ 	{
+ 		"localhost,[host2:123]\tssh-rsa {RSAPUB}\tcomment comment",
+ 		"",
+ 
+-		"", "comment comment", []string{"localhost", "[host2:123]"}, "",
++		"", "comment comment",
++		[]string{"localhost", "[host2:123]"},
++		"",
+ 	},
+ 	{
+ 		"@marker \tlocalhost,[host2:123]\tssh-rsa {RSAPUB}",
+ 		"",
+ 
+-		"marker", "", []string{"localhost", "[host2:123]"}, "",
++		"marker", "",
++		[]string{"localhost", "[host2:123]"},
++		"",
+ 	},
+ 	{
+ 		"@marker \tlocalhost,[host2:123]\tssh-rsa aabbccdd",
+diff --git a/ssh/knownhosts/knownhosts.go b/ssh/knownhosts/knownhosts.go
+index 7376a8d..fc6ac11 100644
+--- a/ssh/knownhosts/knownhosts.go
++++ b/ssh/knownhosts/knownhosts.go
+@@ -21,7 +21,7 @@ import (
+ 	"os"
+ 	"strings"
+ 
+-	"golang.org/x/crypto/ssh"
++	"heckler_ssh_helper/ssh"
+ )
+ 
+ // See the sshd manpage
+@@ -164,8 +164,10 @@ func (db *hostKeyDB) IsRevoked(key *ssh.Certificate) bool {
+ 	return ok
+ }
+ 
+-const markerCert = "@cert-authority"
+-const markerRevoked = "@revoked"
++const (
++	markerCert    = "@cert-authority"
++	markerRevoked = "@revoked"
++)
+ 
+ func nextWord(line []byte) (string, []byte) {
+ 	i := bytes.IndexAny(line, "\t ")
+@@ -498,7 +500,8 @@ func decodeHash(encoded string) (hashType string, salt, hash []byte, err error)
+ }
+ 
+ func encodeHash(typ string, salt []byte, hash []byte) string {
+-	return strings.Join([]string{"",
++	return strings.Join([]string{
++		"",
+ 		typ,
+ 		base64.StdEncoding.EncodeToString(salt),
+ 		base64.StdEncoding.EncodeToString(hash),
+diff --git a/ssh/knownhosts/knownhosts_test.go b/ssh/knownhosts/knownhosts_test.go
+index 464dd59..e00cd46 100644
+--- a/ssh/knownhosts/knownhosts_test.go
++++ b/ssh/knownhosts/knownhosts_test.go
+@@ -11,21 +11,26 @@ import (
+ 	"reflect"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/ssh"
++	"heckler_ssh_helper/ssh"
+ )
+ 
+-const edKeyStr = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGBAarftlLeoyf+v+nVchEZII/vna2PCV8FaX4vsF5BX"
+-const alternateEdKeyStr = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIXffBYeYL+WVzVru8npl5JHt2cjlr4ornFTWzoij9sx"
+-const ecKeyStr = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBNLCu01+wpXe3xB5olXCN4SqU2rQu0qjSRKJO4Bg+JRCPU+ENcgdA5srTU8xYDz/GEa4dzK5ldPw4J/gZgSXCMs="
++const (
++	edKeyStr          = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGBAarftlLeoyf+v+nVchEZII/vna2PCV8FaX4vsF5BX"
++	alternateEdKeyStr = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIXffBYeYL+WVzVru8npl5JHt2cjlr4ornFTWzoij9sx"
++	ecKeyStr          = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBNLCu01+wpXe3xB5olXCN4SqU2rQu0qjSRKJO4Bg+JRCPU+ENcgdA5srTU8xYDz/GEa4dzK5ldPw4J/gZgSXCMs="
++)
+ 
+-var ecKey, alternateEdKey, edKey ssh.PublicKey
+-var testAddr = &net.TCPAddr{
+-	IP:   net.IP{198, 41, 30, 196},
+-	Port: 22,
+-}
++var (
++	ecKey, alternateEdKey, edKey ssh.PublicKey
++	testAddr                     = &net.TCPAddr{
++		IP:   net.IP{198, 41, 30, 196},
++		Port: 22,
++	}
++)
+ 
+ var testAddr6 = &net.TCPAddr{
+-	IP: net.IP{198, 41, 30, 196,
++	IP: net.IP{
++		198, 41, 30, 196,
+ 		1, 2, 3, 4,
+ 		1, 2, 3, 4,
+ 		1, 2, 3, 4,
+@@ -186,7 +191,7 @@ func TestBasic(t *testing.T) {
+ }
+ 
+ func TestHostNamePrecedence(t *testing.T) {
+-	var evilAddr = &net.TCPAddr{
++	evilAddr := &net.TCPAddr{
+ 		IP:   net.IP{66, 66, 66, 66},
+ 		Port: 22,
+ 	}
+diff --git a/ssh/session_test.go b/ssh/session_test.go
+index 521677f..8491fe8 100644
+--- a/ssh/session_test.go
++++ b/ssh/session_test.go
+@@ -15,7 +15,7 @@ import (
+ 	"net"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/ssh/terminal"
++	"heckler_ssh_helper/ssh/terminal"
+ )
+ 
+ type serverType func(Channel, <-chan *Request, *testing.T)
+diff --git a/ssh/test/agent_unix_test.go b/ssh/test/agent_unix_test.go
+index 43fbdb2..674562c 100644
+--- a/ssh/test/agent_unix_test.go
++++ b/ssh/test/agent_unix_test.go
+@@ -11,8 +11,8 @@ import (
+ 	"bytes"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/ssh"
+-	"golang.org/x/crypto/ssh/agent"
++	"heckler_ssh_helper/ssh"
++	"heckler_ssh_helper/ssh/agent"
+ )
+ 
+ func TestAgentForward(t *testing.T) {
+diff --git a/ssh/test/cert_test.go b/ssh/test/cert_test.go
+index 83dd534..831b8dd 100644
+--- a/ssh/test/cert_test.go
++++ b/ssh/test/cert_test.go
+@@ -12,7 +12,7 @@ import (
+ 	"crypto/rand"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/ssh"
++	"heckler_ssh_helper/ssh"
+ )
+ 
+ // Test both logging in with a cert, and also that the certificate presented by an OpenSSH host can be validated correctly
+diff --git a/ssh/test/doc.go b/ssh/test/doc.go
+index 198f0ca..a2f9f2d 100644
+--- a/ssh/test/doc.go
++++ b/ssh/test/doc.go
+@@ -3,5 +3,5 @@
+ // license that can be found in the LICENSE file.
+ 
+ // Package test contains integration tests for the
+-// golang.org/x/crypto/ssh package.
+-package test // import "golang.org/x/crypto/ssh/test"
++// heckler_ssh_helper/ssh package.
++package test // import "heckler_ssh_helper/ssh/test"
+diff --git a/ssh/test/multi_auth_test.go b/ssh/test/multi_auth_test.go
+index 403d736..831a5f1 100644
+--- a/ssh/test/multi_auth_test.go
++++ b/ssh/test/multi_auth_test.go
+@@ -24,7 +24,7 @@ import (
+ 	"strings"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/ssh"
++	"heckler_ssh_helper/ssh"
+ )
+ 
+ // test cases
+diff --git a/ssh/test/session_test.go b/ssh/test/session_test.go
+index 4745ed9..e82b76f 100644
+--- a/ssh/test/session_test.go
++++ b/ssh/test/session_test.go
+@@ -20,7 +20,7 @@ import (
+ 	"strings"
+ 	"testing"
+ 
+-	"golang.org/x/crypto/ssh"
++	"heckler_ssh_helper/ssh"
+ )
+ 
+ func TestRunCommandSuccess(t *testing.T) {
+diff --git a/ssh/test/test_unix_test.go b/ssh/test/test_unix_test.go
+index f3f55db..9e17ac9 100644
+--- a/ssh/test/test_unix_test.go
++++ b/ssh/test/test_unix_test.go
+@@ -23,9 +23,9 @@ import (
+ 	"testing"
+ 	"text/template"
+ 
+-	"golang.org/x/crypto/internal/testenv"
+-	"golang.org/x/crypto/ssh"
+-	"golang.org/x/crypto/ssh/testdata"
++	"heckler_ssh_helper/internal/testenv"
++	"heckler_ssh_helper/ssh"
++	"heckler_ssh_helper/ssh/testdata"
+ )
+ 
+ const (
+@@ -64,7 +64,8 @@ AuthenticationMethods {{.AuthMethods}}
+ 
+ var configTmpl = map[string]*template.Template{
+ 	"default":   template.Must(template.New("").Parse(defaultSshdConfig)),
+-	"MultiAuth": template.Must(template.New("").Parse(defaultSshdConfig + multiAuthSshdConfigTail))}
++	"MultiAuth": template.Must(template.New("").Parse(defaultSshdConfig + multiAuthSshdConfigTail)),
++}
+ 
+ type server struct {
+ 	t          *testing.T
+@@ -246,7 +247,7 @@ func (s *server) Dial(config *ssh.ClientConfig) *ssh.Client {
+ }
+ 
+ func writeFile(path string, contents []byte) {
+-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0600)
++	f, err := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0o600)
+ 	if err != nil {
+ 		panic(err)
+ 	}
+diff --git a/ssh/test/testdata_test.go b/ssh/test/testdata_test.go
+index a053f67..91c8538 100644
+--- a/ssh/test/testdata_test.go
++++ b/ssh/test/testdata_test.go
+@@ -12,8 +12,8 @@ import (
+ 	"crypto/rand"
+ 	"fmt"
+ 
+-	"golang.org/x/crypto/ssh"
+-	"golang.org/x/crypto/ssh/testdata"
++	"heckler_ssh_helper/ssh"
++	"heckler_ssh_helper/ssh/testdata"
+ )
+ 
+ var (
+diff --git a/ssh/testdata/doc.go b/ssh/testdata/doc.go
+index fcae47c..02c9118 100644
+--- a/ssh/testdata/doc.go
++++ b/ssh/testdata/doc.go
+@@ -3,6 +3,6 @@
+ // license that can be found in the LICENSE file.
+ 
+ // This package contains test data shared between the various subpackages of
+-// the golang.org/x/crypto/ssh package. Under no circumstance should
++// the heckler_ssh_helper/ssh package. Under no circumstance should
+ // this data be used for production code.
+-package testdata // import "golang.org/x/crypto/ssh/testdata"
++package testdata // import "heckler_ssh_helper/ssh/testdata"
+diff --git a/ssh/testdata_test.go b/ssh/testdata_test.go
+index 2da8c79..8d388ce 100644
+--- a/ssh/testdata_test.go
++++ b/ssh/testdata_test.go
+@@ -12,7 +12,7 @@ import (
+ 	"crypto/rand"
+ 	"fmt"
+ 
+-	"golang.org/x/crypto/ssh/testdata"
++	"heckler_ssh_helper/ssh/testdata"
+ )
+ 
+ var (
+diff --git a/tea/cipher.go b/tea/cipher.go
+index c1ff90e..15ee4b6 100644
+--- a/tea/cipher.go
++++ b/tea/cipher.go
+@@ -12,7 +12,7 @@
+ //
+ // Deprecated: any new system should use AES (from crypto/aes, if necessary in
+ // an AEAD mode like crypto/cipher.NewGCM) or XChaCha20-Poly1305 (from
+-// golang.org/x/crypto/chacha20poly1305).
++// heckler_ssh_helper/chacha20poly1305).
+ package tea
+ 
+ import (
+diff --git a/twofish/twofish.go b/twofish/twofish.go
+index e4eeae1..bb59a20 100644
+--- a/twofish/twofish.go
++++ b/twofish/twofish.go
+@@ -8,8 +8,8 @@
+ // applications. Also, this package does not and will not provide an optimized
+ // implementation. Instead, use AES (from crypto/aes, if necessary in an AEAD
+ // mode like crypto/cipher.NewGCM) or XChaCha20-Poly1305 (from
+-// golang.org/x/crypto/chacha20poly1305).
+-package twofish // import "golang.org/x/crypto/twofish"
++// heckler_ssh_helper/chacha20poly1305).
++package twofish // import "heckler_ssh_helper/twofish"
+ 
+ // Twofish is defined in https://www.schneier.com/paper-twofish-paper.pdf [TWOFISH]
+ 
+@@ -26,8 +26,10 @@ import (
+ // BlockSize is the constant block size of Twofish.
+ const BlockSize = 16
+ 
+-const mdsPolynomial = 0x169 // x^8 + x^6 + x^5 + x^3 + 1, see [TWOFISH] 4.2
+-const rsPolynomial = 0x14d  // x^8 + x^6 + x^3 + x^2 + 1, see [TWOFISH] 4.3
++const (
++	mdsPolynomial = 0x169 // x^8 + x^6 + x^5 + x^3 + 1, see [TWOFISH] 4.2
++	rsPolynomial  = 0x14d // x^8 + x^6 + x^3 + x^2 + 1, see [TWOFISH] 4.3
++)
+ 
+ // A Cipher is an instance of Twofish encryption using a particular key.
+ type Cipher struct {
+diff --git a/wrapper.py b/wrapper.py
+new file mode 100644
+index 0000000..0024f96
+--- /dev/null
++++ b/wrapper.py
+@@ -0,0 +1,29 @@
++import os
++import sys
++from subprocess import Popen, PIPE, STDOUT
++
++
++try:
++    os.remove("/tmp/heckler_pipe_to_go")
++except OSError:
++    pass
++
++try:
++    os.remove("/tmp/heckler_pipe_from_go")
++except OSError:
++    pass
++
++os.mkfifo("/tmp/heckler_pipe_to_go")
++os.mkfifo("/tmp/heckler_pipe_from_go")
++p = Popen(['./heckler_ssh_helper', 'localhost:22'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
++fd_to = os.open("/tmp/heckler_pipe_to_go", os.O_WRONLY)
++fd_from = os.open("/tmp/heckler_pipe_from_go", os.O_RDONLY)
++
++# poll fd (if we get the data the client is ready) 
++print(os.read(fd_from, 1024))
++# when client is ready send byte to signal continue of next roung
++os.write(fd_to, b"\n")
++
++
++
++p.wait()
+\ No newline at end of file
+diff --git a/x509roots/fallback/fallback.go b/x509roots/fallback/fallback.go
+index 3141359..51770fb 100644
+--- a/x509roots/fallback/fallback.go
++++ b/x509roots/fallback/fallback.go
+@@ -11,7 +11,7 @@
+ //
+ // To use it, import the package like
+ //
+-//	import _ "golang.org/x/crypto/x509roots/fallback"
++//	import _ "heckler_ssh_helper/x509roots/fallback"
+ //
+ // It's recommended that only binaries, and not libraries, import this package.
+ //
+diff --git a/x509roots/fallback/go.mod b/x509roots/fallback/go.mod
+index d8974bf..9379910 100644
+--- a/x509roots/fallback/go.mod
++++ b/x509roots/fallback/go.mod
+@@ -1,3 +1,3 @@
+-module golang.org/x/crypto/x509roots/fallback
++module heckler_ssh_helper/x509roots/fallback
+ 
+ go 1.20
+diff --git a/x509roots/gen_fallback_bundle.go b/x509roots/gen_fallback_bundle.go
+index c22d1b0..a628b97 100644
+--- a/x509roots/gen_fallback_bundle.go
++++ b/x509roots/gen_fallback_bundle.go
+@@ -18,11 +18,10 @@ import (
+ 	"go/format"
+ 	"io"
+ 	"log"
++	"heckler_ssh_helper/x509roots/nss"
+ 	"net/http"
+ 	"os"
+ 	"sort"
+-
+-	"golang.org/x/crypto/x509roots/nss"
+ )
+ 
+ const tmpl = `// Code generated by gen_fallback_bundle.go; DO NOT EDIT.
+diff --git a/x509roots/nss/parser.go b/x509roots/nss/parser.go
+index 1af3e0a..051d17a 100644
+--- a/x509roots/nss/parser.go
++++ b/x509roots/nss/parser.go
+@@ -5,7 +5,7 @@
+ // Package nss provides functionality for parsing NSS certdata.txt
+ // formatted certificate lists and extracting serverAuth roots. Most
+ // users should not use this package themselves, and should instead
+-// rely on the golang.org/x/crypto/x509roots/fallback package which
++// rely on the heckler_ssh_helper/x509roots/fallback package which
+ // calls x509.SetFallbackRoots on a pre-parsed set of roots.
+ package nss
+ 
+diff --git a/xtea/cipher.go b/xtea/cipher.go
+index a4c2fd0..876f51a 100644
+--- a/xtea/cipher.go
++++ b/xtea/cipher.go
+@@ -11,8 +11,8 @@
+ //
+ // Deprecated: any new system should use AES (from crypto/aes, if necessary in
+ // an AEAD mode like crypto/cipher.NewGCM) or XChaCha20-Poly1305 (from
+-// golang.org/x/crypto/chacha20poly1305).
+-package xtea // import "golang.org/x/crypto/xtea"
++// heckler_ssh_helper/chacha20poly1305).
++package xtea // import "heckler_ssh_helper/xtea"
+ 
+ // For details, see http://www.cix.co.uk/~klockstone/xtea.pdf
+ 
+diff --git a/xts/xts.go b/xts/xts.go
+index 8c16a83..bffde2f 100644
+--- a/xts/xts.go
++++ b/xts/xts.go
+@@ -21,7 +21,7 @@
+ //
+ // Note that XTS is usually not appropriate for any use besides disk encryption.
+ // Most users should use an AEAD mode like GCM (from crypto/cipher.NewGCM) instead.
+-package xts // import "golang.org/x/crypto/xts"
++package xts // import "heckler_ssh_helper/xts"
+ 
+ import (
+ 	"crypto/cipher"
+@@ -29,7 +29,7 @@ import (
+ 	"errors"
+ 	"sync"
+ 
+-	"golang.org/x/crypto/internal/alias"
++	"heckler_ssh_helper/internal/alias"
+ )
+ 
+ // Cipher contains an expanded key structure. It is safe for concurrent use if
