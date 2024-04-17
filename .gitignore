@@ -31,3 +31,6 @@ VM_DISK.fd
 VM_DISK.qcow2
 venv
 linux
+.idea
+.code
+run_bene.sh

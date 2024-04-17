@@ -1,0 +1,6 @@
+venv
+sync.sh
+.sync-ignore
+.idea
+*.o
+tmp
