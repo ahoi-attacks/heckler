@@ -42,4 +42,4 @@ Create an Ubuntu 22.04/23.10 image in qcow2 format. See [./run.sh](./run_vm_sudo
 
 ### Artifact Evaluation
 This code is still a work in progress.
-We plan to apply for artifact evaluation when time permits.
+We plan to apply for [artifact evaluation](https://secartifacts.github.io/) when time permits.
