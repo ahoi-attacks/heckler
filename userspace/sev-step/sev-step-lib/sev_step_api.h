@@ -12,12 +12,13 @@
 #define _SEV_STEP_API_H
 
 #include "linux/kvm.h"
+#include "linux/sev-step/sev-step.h"
 
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "sev_step_error_codes.h"
 
+#include "sev_step_error_codes.h"
 
 char* descriptive_perf_name(perf_ctl_config_t cfg);
 
@@ -109,10 +110,15 @@ int usp_block_until_event(usp_poll_api_ctx_t* ctx, usp_event_type_t* event_type,
  */
 int usp_block_until_event_or_cb(usp_poll_api_ctx_t* ctx, usp_event_type_t* event_type, void** event, bool(should_abort)(void*), void* should_abort_args);
 int get_size_for_event(usp_event_type_t event_type, uint64_t* size);
+
+int enable_boot_track(usp_poll_api_ctx_t *ctx, int enabled);
+
 int track_page(usp_poll_api_ctx_t *ctx, uint64_t gpa, enum kvm_page_track_mode mode);
 int untrack_page(usp_poll_api_ctx_t *ctx, uint64_t gpa, enum kvm_page_track_mode mode);
 int track_all_pages(usp_poll_api_ctx_t *ctx, enum kvm_page_track_mode mode);
 int untrack_all_pages(usp_poll_api_ctx_t *ctx, enum kvm_page_track_mode mode);
+
+int inject_interrupt(usp_poll_api_ctx_t *ctx, int number);
 
 /**
  * @brief Helper function that returns true if the VM should currently be halted. This intended as a sanity check when splitting complex attack logic
@@ -137,6 +143,7 @@ bool is_vm_paused(usp_poll_api_ctx_t* ctx);
  * @return int SEV_STEP_OK or SEV_STEP_ERR
  */
 int usp_new_ctx(usp_poll_api_ctx_t* ctx, bool debug_mode);
+int usp_new_ctx_boot(usp_poll_api_ctx_t* ctx, bool debug_mode, bool boot_track);
 int usp_close_ctx(usp_poll_api_ctx_t *ctx);
 /**
  * @brief Enable single stepping upon next vmentry
@@ -231,5 +238,5 @@ int sev_step_cache_attack_testbed(usp_poll_api_ctx_t* ctx);
 //
 char* tracking_mode_to_string(enum kvm_page_track_mode mode);
 
-
+void usp_block_stop(void);
 #endif

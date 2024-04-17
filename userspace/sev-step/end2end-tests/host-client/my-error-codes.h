@@ -1,8 +1,0 @@
-#ifndef MY_ERROR_CODES_H
-#define MY_ERROR_CODES_H
-
-#define HOST_CLIENT_SUCCESS 1
-#define HOST_CLIENT_ERROR 0
-
-#endif 
-
