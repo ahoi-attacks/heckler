@@ -6,7 +6,7 @@ SCRIPT_DIR="$(dirname $0)"
 . ${SCRIPT_DIR}/stable-commits
 [ -e /etc/os-release ] && . /etc/os-release
 
-set -x
+set +x
 
 function usage()
 {

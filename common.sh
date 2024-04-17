@@ -21,13 +21,16 @@ build_kernel()
 	if [ ! -d guest ]; then
 		run_cmd git clone ${KERNEL_GIT_URL} guest
 		pushd guest >/dev/null
-		run_cmd git remote add current ${KERNEL_GIT_URL}
+		run_cmd git checkout "${KERNEL_GUEST_BRANCH}"
 		popd
 	fi
 
 	if [ ! -d host ]; then
 		# use a copy of guest repo as the host repo
 		run_cmd cp -r guest host
+		pushd host >/dev/null
+		run_cmd git reset --hard
+		run_cmd git checkout "${KERNEL_HOST_BRANCH}"
 	fi
 
 	for V in guest host; do
@@ -38,23 +41,23 @@ build_kernel()
 			fi
 		fi
 
-		if [ "${V}" = "guest" ]; then
-			BRANCH="${KERNEL_GUEST_BRANCH}"
-		else
-			BRANCH="${KERNEL_HOST_BRANCH}"
-		fi
+		# if [ "${V}" = "guest" ]; then
+		# 	BRANCH="${KERNEL_GUEST_BRANCH}"
+		# else
+		# 	BRANCH="${KERNEL_HOST_BRANCH}"
+		# fi
 
-		# If ${KERNEL_GIT_URL} is ever changed, 'current' remote will be out
-		# of date, so always update the remote URL first. Also handle case
-		# where AMDSEV scripts are updated while old kernel repos are still in
-		# the directory without a 'current' remote
-		pushd ${V} >/dev/null
-		if git remote get-url current 2>/dev/null; then
-			run_cmd git remote set-url current ${KERNEL_GIT_URL}
-		else
-			run_cmd git remote add current ${KERNEL_GIT_URL}
-		fi
-		popd >/dev/null
+		# # If ${KERNEL_GIT_URL} is ever changed, 'current' remote will be out
+		# # of date, so always update the remote URL first. Also handle case
+		# # where AMDSEV scripts are updated while old kernel repos are still in
+		# # the directory without a 'current' remote
+		# pushd ${V} >/dev/null
+		# if git remote get-url current 2>/dev/null; then
+		# 	run_cmd git remote set-url current ${KERNEL_GIT_URL}
+		# else
+		# 	run_cmd git remote add current ${KERNEL_GIT_URL}
+		# fi
+		# popd >/dev/null
 
 		# Nuke any previously built packages so they don't end up in new tarballs
 		# when ./build.sh --package is specified
@@ -69,8 +72,8 @@ build_kernel()
 		pushd ${V} >/dev/null
 		# BEAN: do not checkout
 		# run_cmd git fetch current
-#		run_cmd git checkout current/${BRANCH}
-#		 run_cmd git checkout ${BRANCH}
+		# run_cmd git checkout current/${BRANCH}
+		# run_cmd git checkout ${BRANCH}
 			COMMIT=$(git log --format="%h" -1 HEAD)
 
 			run_cmd "cp /boot/config-$(uname -r) .config"
@@ -139,6 +142,17 @@ build_install_ovmf_edk2()
 {
 	DEST="$1"
 
+	if [ -d edk2 ]; then
+		echo "./edk2 directory already exist. do not re-init"
+		popd >/dev/null
+	else
+		echo "cloning repository ${OVMF_GIT_URL}"
+		run_cmd git clone --single-branch -b ${OVMF_BRANCH} ${OVMF_GIT_URL} edk2
+		pushd edk2 >/dev/null
+		run_cmd git submodule update --init --recursive
+		popd >/dev/null
+	fi
+
 	GCC_VERSION=$(gcc -v 2>&1 | tail -1 | awk '{print $3}')
 	GCC_MAJOR=$(echo $GCC_VERSION | awk -F . '{print $1}')
 	GCC_MINOR=$(echo $GCC_VERSION | awk -F . '{print $2}')
@@ -162,6 +176,7 @@ build_install_ovmf_edk2()
 }
 
 
+# XXX: We are using older edk2 version, use build_install_ovmf_edk2 instead
 build_install_ovmf()
 {
 	DEST="$1"
@@ -177,7 +192,7 @@ build_install_ovmf()
 
 	BUILD_CMD="nice build -q --cmd-len=64436 -DDEBUG_ON_SERIAL_PORT=TRUE -n $(getconf _NPROCESSORS_ONLN) ${GCCVERS:+-t $GCCVERS} -a X64 -p OvmfPkg/OvmfPkgX64.dsc"
 
-# TODO/bean:
+
 	# initialize git repo, or update existing remote to currently configured one
 #	if [ -d ovmf ]; then
 #		pushd ovmf >/dev/null
@@ -215,27 +230,20 @@ build_install_qemu()
 {
 	DEST="$1"
 
-	# initialize git repo, or update existing remote to currently configured one
-#	if [ -d qemu ]; then
-#		pushd qemu >/dev/null
-#		if git remote get-url current 2>/dev/null; then
-#			run_cmd git remote set-url current ${QEMU_GIT_URL}
-#		else
-#			run_cmd git remote add current ${QEMU_GIT_URL}
-#		fi
-#		popd >/dev/null
-#	else
-#		run_cmd git clone --single-branch -b ${QEMU_BRANCH} ${QEMU_GIT_URL} qemu
-#		pushd qemu >/dev/null
-#		run_cmd git remote add current ${QEMU_GIT_URL}
-#		popd >/dev/null
-#	fi
+	if [ -d qemu ]; then
+		echo "./qemu directory already exist. do not re-init"
+		popd >/dev/null
+	else
+		echo "cloning repository ${QEMU_GIT_URL}"
+		run_cmd git clone --single-branch -b ${QEMU_BRANCH} ${QEMU_GIT_URL} qemu
+		pushd qemu >/dev/null
+		run_cmd git submodule update --init --recursive
+		popd >/dev/null
+	fi
 
 	MAKE="make -j $(getconf _NPROCESSORS_ONLN) LOCALVERSION="
 
 	pushd qemu >/dev/null
-		#run_cmd git fetch current
-		#run_cmd git checkout current/${QEMU_BRANCH}
 		run_cmd CFLAGS=-Wno-error ./configure --target-list=x86_64-softmmu --prefix=$DEST --enable-slirp --enable-virtfs 
 		run_cmd $MAKE
 		run_cmd $MAKE install
