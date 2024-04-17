@@ -1,0 +1,6 @@
+markdown-it-py==3.0.0
+mdurl==0.1.2
+ordered-set==4.1.0
+Pygments==2.17.2
+rich==13.7.1
+zxpy==1.6.3
