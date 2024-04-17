@@ -1,0 +1,6 @@
+[submodule "external-dependencies/json-c"]
+	path = external-dependencies/json-c
+	url = https://github.com/json-c/json-c.git
+[submodule "external-dependencies/curl"]
+	path = external-dependencies/curl
+	url = https://github.com/curl/curl.git

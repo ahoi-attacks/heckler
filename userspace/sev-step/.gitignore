@@ -1,0 +1,11 @@
+*.png
+*.o
+build/
+end2end-tests/vm-server/Cargo.lock
+Cargo.lock
+libsevstep.a
+external-dependencies/curl-build/
+external-dependencies/json-c-build/
+external-dependencies/json-c-install/
+target/
+.vscode/settings.json
