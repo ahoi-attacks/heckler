@@ -1,4 +1,4 @@
-# Hecker Tooling
+# Heckler Tooling
 
 A docker container captures all dependencies to build heckler kernels, vmm and tools.
 
