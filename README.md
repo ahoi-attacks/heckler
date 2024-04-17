@@ -30,6 +30,10 @@ sudo ./install.sh
 
 ### Prepare Host
 Follow up on [Prepare Host](./README-amdsev.md#prepare-host) to set up your host for SEV-SNP.
+We recommend the following additional kernel arguments. 
+```
+GRUB_CMDLINE_LINUX_DEFAULT="transparent_hugepage=never rcupdate.rcu_cpu_stall_suppress=1 nmi_watchdog=0"
+```
 
 
 ### VM Image
