@@ -8,8 +8,8 @@ KERNEL_HOST_BRANCH="heckler/host"
 KERNEL_GUEST_BRANCH="heckler/guest"
 
 # qemu commit
-QEMU_GIT_URL="https://github.com/abertschi/heckler-qemu.git"
-QEMU_BRANCH="snp-latest"
+QEMU_GIT_URL="https://github.com/ahoi-attacks/heckler-qemu.git"
+QEMU_BRANCH="heckler"
 
 
 # guest bios
@@ -20,9 +20,5 @@ QEMU_BRANCH="snp-latest"
 #   please use the 'sev-snp-legacy' branch of this AMDSEV repo instead,
 #   which will build the latest known-working QEMU/OVMF trees for older
 #   SNP hypervisor/host kernels.
-OVMF_GIT_URL="https://github.com/abertschi/heckler-ovmf.git"
-OVMF_BRANCH="snp-latest"
-
-
-ASSETS_GIT_URL=""
-ASSETS_BRANCH=""
+OVMF_GIT_URL="https://github.com/ahoi-attacks/heckler-ovmf.git"
+OVMF_BRANCH="heckler"
