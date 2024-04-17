@@ -30,12 +30,12 @@ def print(msg):
     console.print(msg)
 
 
-# requires go utility: /usr/sbin/my_custom_stuff
+# requires go utility: /usr/sbin/heckler_ssh_helper
 class SshConnection:
-    UTILITY = 'my_custom_stuff'
+    UTILITY = 'heckler_ssh_helper'
 
-    PIPE_TO = "/tmp/pipeToGo"
-    PIPE_FROM = "/tmp/pipeFromGo"
+    PIPE_TO = "/tmp/heckler_pipe_to_go"
+    PIPE_FROM = "/tmp/heckler_pipe_from_go"
 
     def __init__(self):
         self.ssh_fd_to = -1
