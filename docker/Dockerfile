@@ -12,7 +12,7 @@ RUN \
   apt-get install -y curl git htop man unzip vim wget ninja-build
 
 RUN \
-  apt-get -y install emacs vim python3 python3-pip fish
+  apt-get -y install emacs vim python3 python3-pip fish python3-venv
 
 # qemu build deps
 RUN apt-get -y install pkg-config libglib2.0-dev
