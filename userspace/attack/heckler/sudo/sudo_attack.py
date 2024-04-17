@@ -236,6 +236,8 @@ class SudoAttack:
             gad1_hits = pfs[gad1]
             gad2_hits = pfs[gad2]
 
+            # fine tuned for our observed gadget during offline analyis
+            # pattern is easy, ping pong pattern
             if gad1_hits < min_hits or gad2_hits < min_hits:
                 return False
 
