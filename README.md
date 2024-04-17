@@ -9,7 +9,7 @@
 
 Build host and guest kernel as well as VMM in a docker container.
 
-```sh
+```bash
 # On your Host
 cd ./docker
 ./docker-build.sh
@@ -22,17 +22,18 @@ $ ./build.sh --package
 This builds host and guest kernel, qemu and ovmf for your host machine.
 On succesful build, the binaries will be available in `heckler-snp-release-<DATE>`.
 
-```
+```bash
+# On your Host
 cd heckler-snp-release-<DATE>
 sudo ./install.sh
 ````
 
 ### Prepare Host
-Follow up on [Prepare Host](./README-amdsev.md) to set up your host for SEV-SNP.
+Follow up on [Prepare Host](./README-amdsev.md#prepare-host) to set up your host for SEV-SNP.
 
 
 ### VM Image
-Create an ubuntu 22.04 image in qcow2 format. See [./run.sh](./run_vm_sudo.sh) script.  
+Create an Ubuntu 22.04/23.10 image in qcow2 format. See [./run.sh](./run_vm_sudo.sh) script.
 
 ### Companion Repositories:
 - [heckler-kernel](https://github.com/ahoi-attacks/heckler-kernel) (`./linux/{guest|host}`): Kernel code for gadget profiling
