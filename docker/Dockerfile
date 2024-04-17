@@ -40,7 +40,7 @@ RUN bash -c "/root/nasm-install.sh"
 
 
 # kernel
-RUN apt install -y libncurses-dev gawk flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf llvm cpio zstd  build-essential libncurses-dev bison flex libssl-dev libelf-dev fakeroot rsync debhelper
+RUN apt install -y libncurses-dev gawk flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf llvm cpio zstd  build-essential libncurses-dev bison flex libssl-dev libelf-dev fakeroot rsync debhelper bc
 
 RUN git config --global --add safe.directory '*'
 

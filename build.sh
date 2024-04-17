@@ -58,7 +58,7 @@ INSTALL_DIR=$(readlink -e $INSTALL_DIR)
 
 if [ -z "${1:-}" ]; then
 	build_install_qemu "$INSTALL_DIR"
-	build_install_ovmf "$INSTALL_DIR/share/qemu"
+	build_install_ovmf_edk2 "$INSTALL_DIR/share/qemu"
 	build_kernel "${2:-}"
 else
 	case "${1:-}" in
