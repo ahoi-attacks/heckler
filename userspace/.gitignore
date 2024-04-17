@@ -3,4 +3,5 @@ sync.sh
 .sync-ignore
 .idea
 *.o
-tmp
+tmpsync.sh
+.sync-ignore
