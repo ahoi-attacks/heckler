@@ -44,7 +44,7 @@ Create an Ubuntu 22.04/23.10 image in qcow2 format. See [./run.sh](./run_vm_sudo
 - [heckler-qemu](https://github.com/ahoi-attacks/heckler-qemu) (`./qemu`): Compatible qemu version
 - [heckler-ovmf](https://github.com/ahoi-attacks/heckler-ovmf) (`./edk2`): Compatible ovmf version
 
-These repositories are downloaded during project build (./build.sh). 
+These repositories are downloaded during [project build](./build.sh). 
 
 ### Artifact Evaluation
 This code is still a work in progress.
