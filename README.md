@@ -28,7 +28,7 @@ Create an ubuntu 22.04 image in qcow2 format. See ./run.sh script.
 ### Companion Repositories:
 - [heckler-kernel](https://github.com/ahoi-attacks/heckler-kernel) (`./linux/{guest|host}`): Kernel code for gadget profiling
 - [heckler-qemu](https://github.com/ahoi-attacks/heckler-qemu) (`./qemu`): Compatible qemu version
-- [heckler-ovmf](https://github.com/ahoi-attacks/heckler-ovmf) (`./edk2`): Compatible ovmf version⏎
+- [heckler-ovmf](https://github.com/ahoi-attacks/heckler-ovmf) (`./edk2`): Compatible ovmf version
 
 ### Artifact Evaluation
 This code is still a work in progress.
