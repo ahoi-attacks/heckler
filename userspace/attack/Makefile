@@ -14,11 +14,13 @@ $(venv_dir)/touchfile: requirements.txt
 	touch $(venv_dir)/touchfile
 
 build: venv
+	. $(venv_dir)/bin/activate; pip install -r requirements.txt
 	. $(venv_dir)/bin/activate; pip install -e .
 	echo "/dev/kvm needs to be accessible by current user. Sudo required to change permissions"
 	sudo chmod 666 /dev/kvm
 
 test: venv
+	. $(venv_dir)/bin/activate; pip install -r requirements.txt
 	sh -c "'$(SCRIPT_DIR)/run_tests.sh'"
 
 clean:
