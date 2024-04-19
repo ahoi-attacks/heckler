@@ -12,10 +12,18 @@
 #define _SEV_STEP_API_H
 
 #include "linux/kvm.h"
-#include "linux/sev-step/sev-step.h"
+#include "linux/heckler/sev-step.h"
 
 #include <stdint.h>
 #include <stdbool.h>
+
+
+enum kvm_page_track_mode {
+	KVM_PAGE_TRACK_WRITE,
+	KVM_PAGE_TRACK_EXEC,       // heckler: mark as nx
+	KVM_PAGE_TRACK_RESET_EXEC, // mark as !nx (not used for page track)
+	KVM_PAGE_TRACK_MAX,
+};
 
 
 #include "sev_step_error_codes.h"
