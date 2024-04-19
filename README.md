@@ -1,6 +1,6 @@
+[![build-heckler-userspace](https://github.com/ahoi-attacks/heckler/actions/workflows/ci.yaml/badge.svg)](https://github.com/ahoi-attacks/heckler/actions/workflows/ci.yaml)
 [![License: MIT](https://img.shields.io/badge/USENIX%20Security%20'24-Accepted%20Paper-blue)](https://www.usenix.org/conference/usenixsecurity24/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![build-heckler-userspace](https://github.com/ahoi-attacks/heckler/actions/workflows/ci.yaml/badge.svg)](https://github.com/ahoi-attacks/heckler/actions/workflows/ci.yaml)
 
 # Heckler
 >
