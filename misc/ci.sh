@@ -21,7 +21,12 @@ function check_pgm() {
 
 function ssh() {
     cd $root_dir/userspace/ssh
-    make
+
+    #
+    # github runner fails
+    # /usr/bin/mkdir: cannot create directory ‘/var/empty’: Permission denied
+    # ignore
+    make || true
 }
 
 function sudo() {
