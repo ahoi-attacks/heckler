@@ -1,3 +1,5 @@
+PWD=$$(pwd)
+SCRIPT_DIR=$(shell cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 venv_dir = ../venv
 env_file = ../sev-step/environment.env
 SHELL := /bin/bash

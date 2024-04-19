@@ -1,0 +1,23 @@
+on:
+  push:
+    branches:    
+      - master
+      
+  workflow_dispatch:
+
+concurrency: 
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+ 
+name: build-heckler-userspace
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: run ci
+      run: |
+        sudo apt install -y python3 python3-pip python3-venv nasm
+        ./misc/ci.sh
+        
+  

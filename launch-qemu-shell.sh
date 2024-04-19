@@ -293,15 +293,7 @@ QEMU_CONSOLE_LOG=`pwd`/stdout.log
 # save the command line args into log file
 # cat $QEMU_CMDLINE | tee ${QEMU_CONSOLE_LOG}
 echo | tee -a ${QEMU_CONSOLE_LOG}
-
-
-
-
-
 echo "never" | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
-
-
-
 echo "Launching VM ..."
 echo "  $QEMU_CMDLINE"
 

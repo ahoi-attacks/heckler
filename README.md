@@ -34,7 +34,7 @@ We recommend the following additional kernel arguments.
 ```
 GRUB_CMDLINE_LINUX_DEFAULT="transparent_hugepage=never rcupdate.rcu_cpu_stall_suppress=1 nmi_watchdog=0"
 ```
-
+We ran our experiments on an AMD EPYC 9124 16-Core Processor.
 
 ### VM Image
 Create an Ubuntu 22.04/23.10 image in qcow2 format. See [./run.sh](./run_vm_sudo.sh) script.
