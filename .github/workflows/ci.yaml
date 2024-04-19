@@ -11,7 +11,7 @@ concurrency:
  
 name: build-heckler-userspace
 jobs:
-  run-tests:
+  build-heckler-userspace:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
