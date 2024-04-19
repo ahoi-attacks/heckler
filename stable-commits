@@ -3,7 +3,7 @@
 #
 
 # hypervisor commit
-KERNEL_GIT_URL="https://github.com/abertschi/heckler-linux.git"
+KERNEL_GIT_URL="https://github.com/ahoi-attacks/heckler-linux.git"
 KERNEL_HOST_BRANCH="heckler/host"
 KERNEL_GUEST_BRANCH="heckler/guest"
 

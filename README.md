@@ -40,7 +40,7 @@ GRUB_CMDLINE_LINUX_DEFAULT="transparent_hugepage=never rcupdate.rcu_cpu_stall_su
 Create an Ubuntu 22.04/23.10 image in qcow2 format. See [./run.sh](./run_vm_sudo.sh) script.
 
 ### Companion Repositories:
-- [heckler-kernel](https://github.com/ahoi-attacks/heckler-kernel) (`./linux/{guest|host}`): Kernel code for gadget profiling
+- [heckler-kernel](https://github.com/ahoi-attacks/heckler-linux) (`./linux/{guest|host}`): Kernel code for gadget profiling
 - [heckler-qemu](https://github.com/ahoi-attacks/heckler-qemu) (`./qemu`): Compatible qemu version
 - [heckler-ovmf](https://github.com/ahoi-attacks/heckler-ovmf) (`./edk2`): Compatible ovmf version
 
