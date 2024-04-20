@@ -56,3 +56,6 @@ Create an Ubuntu 22.04/23.10 image in qcow2 format. See [./run.sh](./run_vm_sudo
 
 These repositories are downloaded during [project build](./build.sh). 
 
+### CVEs
+- [2024-25744](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-25744)
+- [2024-25743](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-25743)
