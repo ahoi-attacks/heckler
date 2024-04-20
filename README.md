@@ -9,7 +9,7 @@
 > https://ahoi-attacks.github.io/heckler/
 >
 
-## Getting Started
+### Getting Started
 
 Build host and guest kernel as well as VMM in a docker container.
 
