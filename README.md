@@ -1,3 +1,7 @@
+[![build-heckler-userspace](https://github.com/ahoi-attacks/heckler/actions/workflows/ci.yaml/badge.svg)](https://github.com/ahoi-attacks/heckler/actions/workflows/ci.yaml)
+[![License: MIT](https://img.shields.io/badge/USENIX%20Security%20'24-Accepted%20Paper-blue)](https://www.usenix.org/conference/usenixsecurity24/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
 # Heckler
 >
 > Breaking Confidential VMs with Malicious Interrupts  
@@ -34,7 +38,7 @@ We recommend the following additional kernel arguments.
 ```
 GRUB_CMDLINE_LINUX_DEFAULT="transparent_hugepage=never rcupdate.rcu_cpu_stall_suppress=1 nmi_watchdog=0"
 ```
-
+We ran our experiments on an AMD EPYC 9124 16-Core Processor.
 
 ### VM Image
 Create an Ubuntu 22.04/23.10 image in qcow2 format. See [./run.sh](./run_vm_sudo.sh) script.
