@@ -35,13 +35,19 @@ sudo ./install.sh
 ### Prepare Host
 Follow up on [Prepare Host](./README-amdsev.md#prepare-host) to set up your host for SEV-SNP.
 We recommend the following additional kernel arguments. 
-```
+
+```sh
 GRUB_CMDLINE_LINUX_DEFAULT="transparent_hugepage=never rcupdate.rcu_cpu_stall_suppress=1 nmi_watchdog=0"
 ```
-We ran our experiments on an AMD EPYC 9124 16-Core Processor.
+
+We ran our experiments on an AMD 4th gen EPYC 9124 16-Core Processor. However, any other AMD SEV SNP capable processor should work as well.
 
 ### VM Image
 Create an Ubuntu 22.04/23.10 image in qcow2 format. See [./run.sh](./run_vm_sudo.sh) script.
+
+### Attack
+- [Sudo Attack](./userspace/attack/heckler/sudo/sudo_attack.py)
+- [SSH Attack](./userspace/attack/heckler/ssh/ssh_attack.py)
 
 ### Companion Repositories:
 - [heckler-kernel](https://github.com/ahoi-attacks/heckler-linux) (`./linux/{guest|host}`): Kernel code for gadget profiling
@@ -50,6 +56,3 @@ Create an Ubuntu 22.04/23.10 image in qcow2 format. See [./run.sh](./run_vm_sudo
 
 These repositories are downloaded during [project build](./build.sh). 
 
-### Artifact Evaluation
-This code is still a work in progress.
-We plan to apply for [artifact evaluation](https://secartifacts.github.io/) when time permits.
