@@ -103,10 +103,10 @@ if [[ "$BUILD_PACKAGE" = "1" ]]; then
 	cp stable-commits $OUTPUT_DIR/source-config
 
 	if [ "$ID" = "debian" ] || [ "$ID_LIKE" = "debian" ]; then
-		cp linux/linux-*-guest-*.deb $OUTPUT_DIR/linux/guest -v
-		cp linux/linux-*-host-*.deb $OUTPUT_DIR/linux/host -v
+		cp linux/linux-*-guest-*.deb $OUTPUT_DIR/linux/guest -v || true
+		cp linux/linux-*-host-*.deb $OUTPUT_DIR/linux/host -v || true
 	else
-		cp linux/kernel-*.rpm $OUTPUT_DIR/linux -v
+		cp linux/kernel-*.rpm $OUTPUT_DIR/linux -v || true
 	fi
 
 	cp launch-qemu-shell.sh ${OUTPUT_DIR} -v
