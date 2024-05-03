@@ -121,7 +121,6 @@ build_install_ovmf_edk2()
 
 	if [ -d edk2 ]; then
 		echo "./edk2 directory already exist. do not re-init"
-		popd >/dev/null
 	else
 		echo "cloning repository ${OVMF_GIT_URL}"
 		run_cmd git clone --single-branch -b ${OVMF_BRANCH} ${OVMF_GIT_URL} edk2
@@ -209,7 +208,6 @@ build_install_qemu()
 
 	if [ -d qemu ]; then
 		echo "./qemu directory already exist. do not re-init"
-		popd >/dev/null
 	else
 		echo "cloning repository ${QEMU_GIT_URL}"
 		run_cmd git clone --single-branch -b ${QEMU_BRANCH} ${QEMU_GIT_URL} qemu
