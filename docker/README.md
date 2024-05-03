@@ -6,6 +6,7 @@ A docker container captures all dependencies to build heckler kernels, vmm and t
 ```
 ./docker-build.sh
 ```
+Alternatively, a prebuilt container is pushed to [docker hub](https://hub.docker.com/r/beancd/ahoi-heckler/tags).
 
 ### Enter Container
 
@@ -17,3 +18,4 @@ A docker container captures all dependencies to build heckler kernels, vmm and t
 ```
 ./docker-rm.sh
 ```
+
