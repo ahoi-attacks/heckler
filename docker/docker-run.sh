@@ -3,7 +3,7 @@ here_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 proj_dir="$here_dir/.."
 
 
-name=heckler-docker
+name=beancd/ahoi-heckler:latest
 
 # XXX: --mount: to compile host kernel inside container
 # XXX: --priviledged: we need this to run snp guest inside docker
